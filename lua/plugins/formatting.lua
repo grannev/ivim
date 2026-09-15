@@ -4,7 +4,9 @@ return {
     opts = {
         formatters_by_ft = {
             go = { "gofmt" },
-            python = { "black" },
+            -- ruff's formatter is black-compatible and, unlike black, comes
+            -- from mason as a single binary (this machine has no pip)
+            python = { "ruff_format" },
             javascript = { "prettier" },
             typescript = { "prettier" },
             lua = { "stylua" },
@@ -26,7 +28,7 @@ return {
         if not ok then
             return
         end
-        for _, name in ipairs({ "black", "stylua", "prettier" }) do
+        for _, name in ipairs({ "ruff", "stylua", "prettier" }) do
             local found, package = pcall(registry.get_package, name)
             if found and not package:is_installed() then
                 package:install()
