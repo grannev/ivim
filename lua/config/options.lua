@@ -4,7 +4,7 @@ vim.g.maplocalleader = " "
 local o = vim.opt
 
 o.number = true
-o.relativenumber = true
+o.relativenumber = false
 o.mouse = "a"
 o.clipboard = "unnamedplus"
 o.breakindent = true

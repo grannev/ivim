@@ -7,9 +7,8 @@ return {
         "williamboman/mason-lspconfig.nvim",
         dependencies = { "williamboman/mason.nvim" },
         opts = {
-            -- its default auto-enable calls vim.lsp.enable(), added in
-            -- Neovim 0.11 — we're on 0.10.4 (Debian trixie), and nvim-lspconfig
-            -- setup() below already does this manually anyway.
+            -- Servers are enabled explicitly below so their capabilities are
+            -- configured through Neovim's native LSP API first.
             automatic_enable = false,
             ensure_installed = {
                 "gopls",
@@ -32,7 +31,6 @@ return {
         },
         config = function()
             local capabilities = require("blink.cmp").get_lsp_capabilities()
-            local lspconfig = require("lspconfig")
 
             local servers = {
                 "gopls",
@@ -46,8 +44,9 @@ return {
                 "dockerls",
             }
             for _, server in ipairs(servers) do
-                lspconfig[server].setup({ capabilities = capabilities })
+                vim.lsp.config(server, { capabilities = capabilities })
             end
+            vim.lsp.enable(servers)
 
             vim.api.nvim_create_autocmd("LspAttach", {
                 callback = function(event)
