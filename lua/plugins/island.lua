@@ -22,7 +22,7 @@ return {
         lazy = false,
         priority = 100,
         config = function()
-            require("island").setup()
+            require("island").setup({ cmdline = false, results = false })
         end,
     },
 }
