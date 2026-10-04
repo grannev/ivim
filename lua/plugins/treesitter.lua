@@ -1,34 +1,73 @@
 return {
     "nvim-treesitter/nvim-treesitter",
-    -- main dropped the nvim-treesitter.configs API entirely (v1 rewrite);
-    -- master still has it and is what every highlight/indent = enable
-    -- style config (like this one) needs.
-    branch = "master",
+    -- main is the maintained rewrite. master is frozen, and its query
+    -- directives no longer match a current Neovim (0.13-dev here): every
+    -- markdown code block — the LSP documentation blink.cmp shows, say —
+    -- raised "attempt to call method 'range'" from its injection query.
+    branch = "main",
+    lazy = false,
     build = ":TSUpdate",
+    dependencies = { "williamboman/mason.nvim" },
     config = function()
-        require("nvim-treesitter.configs").setup({
-            ensure_installed = {
-                "c",
-                "go",
-                "python",
-                "javascript",
-                "typescript",
-                "tsx",
-                "lua",
-                "bash",
-                "json",
-                "yaml",
-                "markdown",
-                "markdown_inline",
-                "dockerfile",
-                "html",
-                "css",
-                "vim",
-                "vimdoc",
-                "query",
-            },
-            highlight = { enable = true },
-            indent = { enable = true },
+        local ts = require("nvim-treesitter")
+        ts.setup({})
+        local languages = {
+            "c",
+            "rust",
+            "go",
+            "python",
+            "javascript",
+            "typescript",
+            "tsx",
+            "lua",
+            "bash",
+            "json",
+            "yaml",
+            "toml",
+            "ron",
+            "markdown",
+            "markdown_inline",
+            "dockerfile",
+            "html",
+            "css",
+            "vim",
+            "vimdoc",
+            "query",
+        }
+        -- parsers are compiled in the background with the tree-sitter CLI,
+        -- which comes from mason like the servers and formatters do; on a
+        -- machine without it the parsers wait for that install to finish.
+        -- `install` skips parsers that are already there.
+        local function install_parsers()
+            ts.install(languages)
+        end
+        if vim.fn.executable("tree-sitter") == 1 then
+            install_parsers()
+        else
+            local ok, registry = pcall(require, "mason-registry")
+            local found, cli = false, nil
+            if ok then
+                found, cli = pcall(registry.get_package, "tree-sitter-cli")
+            end
+            if found and not cli:is_installed() then
+                cli:install():once("closed", function()
+                    vim.schedule(install_parsers)
+                end)
+            elseif found then
+                install_parsers()
+            end
+        end
+        -- main has no highlight/indent = enable: both are switched on per
+        -- buffer, for whichever filetype has a parser
+        vim.api.nvim_create_autocmd("FileType", {
+            group = vim.api.nvim_create_augroup("treesitter", { clear = true }),
+            callback = function(args)
+                local lang = vim.treesitter.language.get_lang(args.match)
+                if not lang or not pcall(vim.treesitter.start, args.buf, lang) then
+                    return
+                end
+                vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+            end,
         })
     end,
 }
