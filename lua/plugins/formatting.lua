@@ -1,9 +1,16 @@
 return {
     "stevearc/conform.nvim",
     dependencies = { "williamboman/mason.nvim" },
+    -- keys below would otherwise make this lazy; keep it loaded so the
+    -- island's Format button and the mason installs below work at once
+    lazy = false,
     opts = {
         formatters_by_ft = {
             go = { "gofmt" },
+            -- rustfmt ships with rustup/cargo, not mason (there is no
+            -- standalone mason package for it); it reads the edition
+            -- from Cargo.toml on its own, so no extra flags are needed.
+            rust = { "rustfmt" },
             -- ruff's formatter is black-compatible and, unlike black, comes
             -- from mason as a single binary (this machine has no pip)
             python = { "ruff_format" },
@@ -12,13 +19,23 @@ return {
             lua = { "stylua" },
             json = { "prettier" },
         },
-        format_on_save = {
-            timeout_ms = 500,
-            lsp_fallback = true,
-        },
+        -- formatting is on demand only (<leader>cf or the island's Format
+        -- button), never on save
+        format_on_save = false,
+        default_format_opts = { lsp_format = "fallback" },
         -- a missing formatter falls back to the LSP quietly instead of a
-        -- warning on every save
+        -- warning
         notify_no_formatters = false,
+    },
+    keys = {
+        {
+            "<leader>cf",
+            function()
+                require("conform").format({ async = true })
+            end,
+            mode = { "n", "v" },
+            desc = "Format buffer",
+        },
     },
     config = function(_, opts)
         require("conform").setup(opts)

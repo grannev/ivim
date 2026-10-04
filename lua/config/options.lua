@@ -27,7 +27,8 @@ o.showmode = false
 o.ruler = false
 o.showcmd = false
 o.cmdheight = 0
-o.showtabline = 0
+-- the tab line appears once there is a second tab page (:tabnew)
+o.showtabline = 1
 o.pumheight = 8
 o.winborder = "rounded"
 -- Use the terminal background without blending in underlying buffer text.

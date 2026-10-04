@@ -53,11 +53,31 @@ map("n", "<C-j>", "<C-w>j")
 map("n", "<C-k>", "<C-w>k")
 map("n", "<C-l>", "<C-w>l")
 
--- resize splits
+-- resize splits (Ctrl-Left/Right stay Vim's word motions, and Alt-Left/
+-- Right below switch tabs, so the width goes on Ctrl-Alt)
 map("n", "<C-Up>", ":resize -2<CR>")
 map("n", "<C-Down>", ":resize +2<CR>")
-map("n", "<C-Left>", ":vertical resize -2<CR>")
-map("n", "<C-Right>", ":vertical resize +2<CR>")
+map("n", "<C-A-Left>", ":vertical resize -2<CR>")
+map("n", "<C-A-Right>", ":vertical resize +2<CR>")
+
+-- tabs: switch with Alt-Left/Right, reorder the current one with its
+-- neighbour by adding Shift
+map("n", "<A-Left>", "<cmd>tabprevious<CR>", { desc = "Previous tab" })
+map("n", "<A-Right>", "<cmd>tabnext<CR>", { desc = "Next tab" })
+
+-- :tabmove errors past either end instead of stopping there, so this
+-- checks the edge first
+local function move_tab(offset)
+    local current = vim.fn.tabpagenr()
+    local last = vim.fn.tabpagenr("$")
+    local target = current + offset
+    if target < 1 or target > last then
+        return
+    end
+    vim.cmd.tabmove({ args = { tostring(offset >= 0 and ("+" .. offset) or offset) } })
+end
+map("n", "<A-S-Left>", function() move_tab(-1) end, { desc = "Move tab left" })
+map("n", "<A-S-Right>", function() move_tab(1) end, { desc = "Move tab right" })
 
 -- move selected lines up/down
 map("v", "J", ":m '>+1<CR>gv=gv")
@@ -82,3 +102,10 @@ map("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", { desc = "Help tags" })
 map("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
 map("n", "<leader>d", vim.diagnostic.open_float, { desc = "Line diagnostics" })
+
+-- inlay hints are off by default; this turns them on for the current
+-- buffer (rust-analyzer shows types, not parameter names) and back off
+map("n", "<leader>th", function()
+    local bufnr = 0
+    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr })
+end, { desc = "Toggle inlay hints" })

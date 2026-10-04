@@ -28,9 +28,8 @@ panel with the buffer list and Save / Format / Close.
 - `lua/plugins/island.lua` must stay: it loads `island.nvim` with
   `lazy = false` and disables lualine. Do not re-enable a status line
   plugin or set `laststatus` elsewhere; the island sets `laststatus = 0`.
-- `require("island").setup()` overrides `vim.notify` (it still calls the
-  original afterwards). Notification plugins are fine as long as they wrap
-  rather than replace it after the island loaded.
+- `require("island").setup()` leaves `vim.notify` alone: messages stay in
+  Neovim's command line, the island only flashes its chip on a write.
 - The plugin reads `vim.b.gitsigns_status_dict` for the branch and the
   diff — keep gitsigns.
 - Diagnostics come from `vim.diagnostic`; any LSP setup works.
