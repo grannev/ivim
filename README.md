@@ -7,6 +7,8 @@ Commands and their output use Neovim's native display.
 
 Lazy.nvim, LSP through mason, treesitter, telescope, blink.cmp, conform,
 gitsigns and nvim-tree, with a local graphite palette inspired by macOS.
+Rust gets its own layer on top: rustaceanvim, crates.nvim and a debugger
+(nvim-dap) wired to a mason-installed codelldb.
 
 ## Appearance
 
@@ -39,6 +41,8 @@ level inside it. Scrolling remains immediate, without animation plugins.
     lua/config/              options, keymaps, the lazy.nvim bootstrap
     lua/plugins/*.lua        one spec file per concern
     lua/plugins/island.lua   the island layer (see CLAUDE.md)
+    lua/plugins/rust.lua     rustaceanvim, crates.nvim
+    lua/plugins/dap.lua      debugging (nvim-dap); rust.lua wires it up
     lazy-lock.json           pinned plugin versions
 
 `~/.config/nvim` is a symlink to this directory. Indentation is four
