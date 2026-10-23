@@ -18,6 +18,10 @@ local function mix(from, to, t)
     return ("#%02X%02X%02X"):format(rgb[1], rgb[2], rgb[3])
 end
 
+-- the wallpaper behind the transparent terminal, on average (navy-teal,
+-- #142630 to #1D343E behind the code)
+local wallpaper = "#182F39"
+
 local function own_groups(hl, c)
     -- todo-comments keywords (lua/plugins/todo-comments.lua): the vivid
     -- accents, so a keyword stands out of an italic comment
@@ -83,6 +87,22 @@ return {
                     -- are a step lighter than the wallpaper, in its own hue.
                     hl.CursorLine = { bg = "#1F3A47" }
                     hl.ColorColumn = { bg = "#1B333E" }
+                    -- the winbar (dropbar's path) as clear as the editor
+                    hl.WinBar = { fg = c.fg_dark }
+                    hl.WinBarNC = { fg = c.dark5 }
+                    -- Markdown blocks as tinted glass: the theme's colour
+                    -- mixed into the wallpaper's, since a real translucent
+                    -- background is not something the terminal draws
+                    local function glass(color, amount)
+                        return mix(wallpaper, color, amount)
+                    end
+                    hl.RenderMarkdownCode = { bg = glass(c.bg_dark, 0.55) }
+                    local inline = { fg = c.blue, bg = glass(c.terminal_black, 0.45) }
+                    hl.RenderMarkdownCodeInline = inline
+                    hl["@markup.raw.markdown_inline"] = inline
+                    for i, color in ipairs(c.rainbow) do
+                        hl["RenderMarkdownH" .. i .. "Bg"] = { bg = glass(color, 0.14) }
+                    end
                     -- the scrollbar's thumb, a step past the current line
                     hl.SatelliteBar = { bg = "#284552" }
                 else
