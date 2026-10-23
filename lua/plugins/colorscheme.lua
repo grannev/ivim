@@ -29,16 +29,41 @@ local wallpaper = "#182F39"
 -- is then #1B2B34 + (target - wallpaper) / 0.75; the wallpaper's own
 -- shading still comes through it.
 local alacritty_bg, opacity = "#1B2B34", 0.75
-local function through(target)
-    local function channel(hex, i)
-        return tonumber(hex:sub(2 * i, 2 * i + 1), 16)
-    end
-    local rgb = {}
+
+local function channels(hex)
+    return { tonumber(hex:sub(2, 3), 16), tonumber(hex:sub(4, 5), 16), tonumber(hex:sub(6, 7), 16) }
+end
+
+local function hex(rgb)
+    local out = {}
     for i = 1, 3 do
-        local value = channel(alacritty_bg, i) + (channel(target, i) - channel(wallpaper, i)) / opacity
-        rgb[i] = math.max(0, math.min(255, math.floor(value + 0.5)))
+        out[i] = math.max(0, math.min(255, math.floor(rgb[i] + 0.5)))
     end
-    return ("#%02X%02X%02X"):format(rgb[1], rgb[2], rgb[3])
+    return ("#%02X%02X%02X"):format(out[1], out[2], out[3])
+end
+
+-- how a cell background shows over the wallpaper, on average: what text
+-- (never translucent) has to be coloured to sit flush against it
+local function shown(bg)
+    local b, a, w = channels(bg), channels(alacritty_bg), channels(wallpaper)
+    return hex({ opacity * b[1] + w[1] - opacity * a[1], opacity * b[2] + w[2] - opacity * a[2], opacity * b[3] + w[3] - opacity * a[3] })
+end
+
+local function through(target)
+    local t, a, w = channels(target), channels(alacritty_bg), channels(wallpaper)
+    return hex({ a[1] + (t[1] - w[1]) / opacity, a[2] + (t[2] - w[2]) / opacity, a[3] + (t[3] - w[3]) / opacity })
+end
+
+-- the status line's mode pills
+local function mode_colours(c)
+    return {
+        Normal = c.blue,
+        Insert = c.green,
+        Visual = c.magenta,
+        Replace = c.red,
+        Command = c.yellow,
+        Terminal = c.teal,
+    }
 end
 
 local function own_groups(hl, c)
@@ -73,15 +98,7 @@ local function own_groups(hl, c)
 
     -- the status line (lua/config/statusline.lua): the mode as a pill in its
     -- own colour, the rest as text on the clear background
-    local mode_colours = {
-        Normal = c.blue,
-        Insert = c.green,
-        Visual = c.magenta,
-        Replace = c.red,
-        Command = c.yellow,
-        Terminal = c.teal,
-    }
-    for kind, colour in pairs(mode_colours) do
+    for kind, colour in pairs(mode_colours(c)) do
         hl["IvimStatusMode" .. kind] = { fg = c.black, bg = colour, bold = true }
         hl["IvimStatusModeCap" .. kind] = { fg = colour }
     end
@@ -148,6 +165,14 @@ return {
                     end
                     -- the scrollbar's thumb, a step past the current line
                     hl.SatelliteBar = { bg = through("#284552") }
+                    -- the mode pill: its middle is a translucent background,
+                    -- its rounded ends are glyphs in the text colour, which
+                    -- the terminal draws solid; the ends take the colour the
+                    -- middle shows as, or the middle looks shaded between
+                    -- two bright caps
+                    for kind, colour in pairs(mode_colours(c)) do
+                        hl["IvimStatusModeCap" .. kind] = { fg = shown(colour) }
+                    end
                 else
                     hl.SatelliteBar = { bg = c.bg_highlight }
                 end
