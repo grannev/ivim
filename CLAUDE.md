@@ -2,8 +2,9 @@
 
 Reply to the user in Russian. Code, comments and commit messages in English.
 Four-space indentation in every file (see `.editorconfig` / `.stylua.toml`).
-Commits end with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`
-and a `Claude-Session: <url>` trailer.
+Commits end with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`,
+and with a `Claude-Session: <url>` trailer when the session has a
+claude.ai URL (a terminal session has none).
 
 ## What this is
 

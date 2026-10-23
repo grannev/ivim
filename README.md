@@ -8,7 +8,7 @@ Commands and their output use Neovim's native display.
 What the editor *does* comes from
 [dotfiles.nvim](https://github.com/grannev/dotfiles.nvim): native tabs, LSP
 with delayed popups, Telescope, Oil, Trouble, Spectre, a floating terminal
-with LazyGit, a file runner, sessions, C/C++ body folds, LaTeX through
+a file runner, sessions, C/C++ body folds, LaTeX through
 VimTeX, ru/en spellcheck and a config health check. What it *looks like* is
 iVim's own: the graphite palette, transparent panels, quiet gutter marks and
 no status line. On top of both sits iVim's Rust layer (rustaceanvim,
@@ -104,7 +104,7 @@ Leader is `Space`.
 
     Git, terminal, run
     ]c / [c      next / previous hunk  <leader>gp/gr/gb  preview, reset, blame
-    <leader>gg   LazyGit               Ctrl-\  floating terminal, Esc leaves it
+    Ctrl-\       floating terminal, Esc leaves it
     <leader>rr   run the current file (cargo run in a Cargo project)
     <leader>mm   :make, <leader>mo/mc/mn/mp  quickfix
 
@@ -168,4 +168,4 @@ per check and exits non-zero on a failure; run it after `:Lazy update`.
 `~/.config/nvim` is a symlink to this directory. Indentation is four
 spaces everywhere (`.editorconfig`, `.stylua.toml`). `:NvimConfigRepair`
 (`<leader>cr`) installs missing mason packages and system tools (apt or
-pacman); LazyGit has to be installed separately for `<leader>gg`.
+pacman).

@@ -80,7 +80,7 @@ local function run()
 
     test("keymaps", function()
         local expected = {
-            { "n", " ff" }, { "n", " fg" }, { "n", " e" }, { "n", "-" }, { "n", " gg" },
+            { "n", " ff" }, { "n", " fg" }, { "n", " e" }, { "n", "-" },
             { "n", " xx" }, { "n", " sr" }, { "n", " ss" }, { "n", " sl" }, { "n", " rr" },
             { "n", " lf" }, { "n", " uh" }, { "n", " ih" }, { "n", " ch" }, { "n", " Db" },
             { "n", " tt" }, { "n", "<A-Right>" }, { "n", "<C-\\>" }, { "n", "]c" }, { "n", "]t" },

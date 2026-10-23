@@ -18,7 +18,6 @@ local system_tools = {
     { cmd = "cc", apt = "gcc", pacman = "gcc" },
     { cmd = "make", apt = "make", pacman = "make" },
     { cmd = "sed", apt = "sed", pacman = "sed" },
-    { cmd = "lazygit", apt = "lazygit", pacman = "lazygit" },
     { cmd = "latexmk", apt = "latexmk", pacman = "texlive-binextra" },
     { cmd = "evince", apt = "evince", pacman = "evince" },
 }
