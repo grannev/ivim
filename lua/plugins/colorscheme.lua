@@ -36,6 +36,9 @@ local function own_groups(hl, c)
     hl.IvimIntroKey = { fg = c.blue1, bold = true }
     hl.IvimIntroDesc = { fg = c.fg }
     hl.IvimIntroMuted = { fg = c.comment }
+    hl.IvimIntroSearchBorder = { fg = c.blue1 }
+    hl.IvimIntroSearchIcon = { fg = c.cyan, bold = true }
+    hl.IvimIntroSearchPlaceholder = { fg = c.comment, italic = true }
 
     -- the tab line (lua/plugins/ui.lua)
     hl.TabbyFill = {}

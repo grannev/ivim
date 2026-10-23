@@ -31,8 +31,13 @@ command line appears when needed, and the island owns mode, file state and
 editor actions.
 
 A bare `nvim` opens on iVim's own start screen (`lua/config/intro.lua`): the
-name in block letters and the few keys worth knowing in an empty editor; it
-goes away as soon as you type or open something.
+name in block letters, a search line and the few keys worth knowing in an
+empty editor. The cursor starts in the search line: typing searches files
+and folders by name across the whole system (`lua/config/system_search.lua`;
+plocate when installed, fd otherwise), Enter opens a file, or a folder in
+Oil, and a typed path that exists opens directly. Esc in the line goes to
+the editor and `/` back; Esc in the results brings the start screen back.
+It goes away as soon as you type in the buffer or open something.
 
 Motion is animated (`lua/plugins/animate.lua`): neoscroll glides
 `Ctrl-d/u/f/b/e/y`, `zz/zt/zb` and the mouse wheel line by line, slowing
@@ -67,6 +72,7 @@ Leader is `Space`.
     <leader>ff  find files             <leader>fg  live grep
     <leader>fb  buffers                <leader>fh  help
     <leader>ft  TODOs                  <leader>sr  project search/replace
+    <leader>fs  files and folders on the whole system (folders open in Oil)
     <leader>sR  replace word           <leader>sF  replace in file
 
     Buffers, windows, tabs

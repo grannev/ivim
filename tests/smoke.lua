@@ -43,9 +43,11 @@ local function clients()
     return names
 end
 
+-- floating windows, leaving out mini.animate's short-lived animation ones
 local function floats()
     return vim.tbl_filter(function(win)
-        return vim.api.nvim_win_get_config(win).relative ~= ""
+        local name = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win))
+        return vim.api.nvim_win_get_config(win).relative ~= "" and not name:find("^minianimate://")
     end, vim.api.nvim_list_wins())
 end
 
@@ -82,7 +84,7 @@ local function run()
             { "n", " xx" }, { "n", " sr" }, { "n", " ss" }, { "n", " sl" }, { "n", " rr" },
             { "n", " lf" }, { "n", " uh" }, { "n", " ih" }, { "n", " ch" }, { "n", " Db" },
             { "n", " tt" }, { "n", "<A-Right>" }, { "n", "<C-\\>" }, { "n", "]c" }, { "n", "]t" },
-            { "n", "<C-d>" }, { "n", "n" }, { "n", "<ScrollWheelDown>" },
+            { "n", "<C-d>" }, { "n", "n" }, { "n", "<ScrollWheelDown>" }, { "n", " fs" },
         }
         for _, map in ipairs(expected) do
             check(not vim.tbl_isempty(vim.fn.maparg(map[2], map[1], false, true)), "no mapping for " .. map[2])
@@ -187,17 +189,86 @@ local function run()
         check(line:find("1:") and line:find("2:sample.lua"), "tab line: " .. line)
     end)
 
-    test("start screen opens, hides the chrome and goes on typing", function()
+    test("start screen: search line focused, Esc to the editor, / back, typing closes it", function()
         local columns, lines = vim.o.columns, vim.o.lines
         vim.o.columns, vim.o.lines = 200, 50
         vim.cmd("enew")
+        local base = vim.api.nvim_get_current_win()
         require("config.intro").open()
-        eq(#floats(), 1, "floats while open")
-        eq(vim.wo.number, false, "number while open")
+        vim.wait(100)
+        -- (its startinsert only takes effect once Neovim is back in its main
+        -- loop, which a test run never returns to)
+        eq(#floats(), 2, "floats with the search line focused")
+        check(vim.api.nvim_get_current_win() ~= base, "cursor in the search line")
+        eq(vim.wo[base].number, false, "number under the start screen")
+        keys("<Esc>")
+        vim.wait(100)
+        eq(#floats(), 1, "floats after Esc")
+        eq(vim.api.nvim_get_current_win(), base, "window after Esc")
+        keys("/")
+        vim.wait(100)
+        eq(#floats(), 2, "floats after /")
+        keys("<Esc>")
+        vim.wait(100)
         keys("i")
         vim.cmd("stopinsert")
-        eq(#floats(), 0, "floats after typing")
+        eq(#floats(), 0, "floats after typing in the buffer")
         eq(vim.wo.number, true, "number after typing")
+        vim.o.columns, vim.o.lines = columns, lines
+    end)
+
+    test("system search: a name opens the file, a folder opens in Oil, a path opens directly", function()
+        local columns, lines = vim.o.columns, vim.o.lines
+        vim.o.columns, vim.o.lines = 200, 50
+        local tag = tostring(vim.uv.hrtime())
+        local file = vim.fn.getcwd() .. "/ivimsearch" .. tag .. ".lua"
+        local dir = vim.fn.getcwd() .. "/ivimfolder" .. tag
+        vim.fn.writefile({ "found" }, file)
+        vim.fn.mkdir(dir)
+
+        -- typing in the search line, as Insert mode would report it
+        local function type_query(query)
+            local line = vim.api.nvim_get_current_buf()
+            vim.api.nvim_buf_set_lines(line, 0, -1, false, { query })
+            vim.api.nvim_exec_autocmds("TextChangedI", { buffer = line })
+        end
+
+        local function search_from_start_screen(query)
+            vim.cmd("enew")
+            require("config.intro").open()
+            vim.wait(100)
+            type_query(query)
+            check(wait_for(function()
+                return vim.bo.filetype == "TelescopePrompt"
+            end, 3000), "typing opens the picker")
+            local picker = require("telescope.actions.state").get_current_picker(vim.api.nvim_get_current_buf())
+            check(wait_for(function()
+                return picker:get_selection() ~= nil
+            end, 15000), "a selected result for " .. query)
+            eq(picker:_get_prompt(), query, "query carried into the picker")
+            keys("<CR>")
+            vim.wait(300)
+        end
+
+        search_from_start_screen("ivimsearch" .. tag)
+        eq(vim.api.nvim_buf_get_name(0), file, "file opened")
+        search_from_start_screen("ivimfolder" .. tag)
+        eq(vim.bo.filetype, "oil", "folder opened in Oil")
+        check(vim.api.nvim_buf_get_name(0):find("ivimfolder" .. tag, 1, true), "Oil shows the folder")
+        search_from_start_screen(file)
+        eq(vim.api.nvim_buf_get_name(0), file, "typed path opened")
+
+        vim.cmd("enew")
+        require("config.intro").open()
+        vim.wait(100)
+        type_query("zzzznothing" .. tag)
+        wait_for(function()
+            return vim.bo.filetype == "TelescopePrompt"
+        end, 3000)
+        keys("<Esc>")
+        vim.wait(300)
+        eq(#floats(), 2, "Esc in the picker brings the start screen back")
+        require("config.intro").close()
         vim.o.columns, vim.o.lines = columns, lines
     end)
 
