@@ -3,6 +3,16 @@
 -- mini.animate owns the cursor jumping, windows resizing, opening and
 -- closing — its own scroll animation stays off.
 
+-- Neovide glides the scroll and the cursor itself (lua/config/neovide.lua);
+-- neither plugin loads there, and Ctrl-d/u and n/N only keep the centring.
+if vim.g.neovide then
+    vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Scroll down half a page" })
+    vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Scroll up half a page" })
+    vim.keymap.set("n", "n", "nzzzv", { desc = "Next match, centred" })
+    vim.keymap.set("n", "N", "Nzzzv", { desc = "Previous match, centred" })
+    return {}
+end
+
 -- neoscroll silences CursorMoved while it scrolls, one line at a time.
 -- Once it stops, everything listening — the island's cursor position, the
 -- LSP highlight and popup timers — hears about the cursor's final place.

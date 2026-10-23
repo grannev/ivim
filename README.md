@@ -40,6 +40,14 @@ down as it arrives, and `Ctrl-d/u` and `n/N` end with the cursor line in
 the middle of the window; mini.animate draws the cursor's jumps and
 windows resizing, opening and closing. It works in any terminal.
 
+## Neovide
+
+Neovide works with this config (it needs a build from July 2026 or later
+for Neovim 0.13's API metadata). `lua/config/neovide.lua` gives it the
+terminal's font and 0.75 opacity, tokyonight paints its own navy there, and
+neoscroll and mini.animate stay off since Neovide animates the cursor and
+scrolling itself.
+
 ## Island
 
 `lua/plugins/island.lua` loads island.nvim and keeps lualine off; see
