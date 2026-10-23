@@ -132,6 +132,18 @@ Leader is `Space`.
     lua/plugins/dap.lua      debugging (nvim-dap); rust.lua wires it up
     lazy-lock.json           pinned plugin versions
 
+## Tests
+
+    ./tests/run.sh
+
+runs `tests/smoke.lua` in a headless Neovim against the installed plugins
+and mason packages, in throwaway config and state directories with a copy
+of `tests/fixtures`: startup without messages, the island contract, the
+keymaps, a language server per language (C, C++, Lua, Rust), the Telescope
+previewer, TODO colours and gutter letters, C folds, the tab line, the
+start screen, the scroll animation and the health check. It prints a line
+per check and exits non-zero on a failure; run it after `:Lazy update`.
+
 `~/.config/nvim` is a symlink to this directory. Indentation is four
 spaces everywhere (`.editorconfig`, `.stylua.toml`). `:NvimConfigRepair`
 (`<leader>cr`) installs missing mason packages and system tools (apt or
