@@ -8,12 +8,14 @@ o.relativenumber = false
 o.mouse = "a"
 o.clipboard = "unnamedplus"
 o.breakindent = true
-o.undofile = true
+o.wrap = false
 o.ignorecase = true
 o.smartcase = true
-o.signcolumn = "yes"
-o.updatetime = 250
-o.timeoutlen = 300
+o.signcolumn = "yes:1"
+-- CursorHold stays rare: the diagnostic and hover popups run on their own
+-- timers (lua/plugins/lsp.lua), nothing else should fire while typing
+o.updatetime = 3000
+o.timeoutlen = 400
 o.splitright = true
 o.splitbelow = true
 o.list = false
@@ -22,6 +24,7 @@ o.inccommand = "split"
 o.cursorline = true
 o.colorcolumn = "80"
 o.scrolloff = 8
+o.sidescrolloff = 8
 o.termguicolors = true
 o.showmode = false
 o.ruler = false
@@ -36,14 +39,20 @@ o.winblend = 0
 o.pumblend = 0
 o.fillchars = { eob = " " }
 
+o.undofile = true
+o.undodir = vim.fn.stdpath("state") .. "/undo"
+o.undolevels = 10000
+o.undoreload = 10000
+vim.fn.mkdir(o.undodir:get()[1], "p")
+
 vim.diagnostic.config({
     virtual_text = false,
     virtual_lines = false,
     underline = true,
     severity_sort = true,
     update_in_insert = false,
-    signs = { text = { [1] = "●", [2] = "●", [3] = "·", [4] = "·" } },
-    float = { border = "rounded", source = "if_many", header = "", prefix = "" },
+    signs = { text = { [1] = "E", [2] = "W", [3] = "I", [4] = "H" } },
+    float = { border = "rounded", source = true, header = "", prefix = "" },
 })
 
 o.tabstop = 4

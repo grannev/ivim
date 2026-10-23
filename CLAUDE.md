@@ -14,6 +14,10 @@ mode, file, cursor position, git and diagnostics are shown there, saves
 and LSP progress arrive as pills, and the pointer on the island opens a
 panel with the buffer list and Save / Format / Close.
 
+Behaviour (plugins, keymaps, popups, completion flow) follows
+`github.com/grannev/dotfiles.nvim`; appearance is iVim's own — every
+colour lives in `colors/ivim.lua`, plugin specs set none.
+
 ## Who owns what
 
 - **The look of the editor itself** — everything inside the terminal:

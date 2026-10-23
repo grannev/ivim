@@ -36,16 +36,16 @@ return {
                 return pkg
             end
 
-            local rust_analyzer = mason_pkg("rust-analyzer")
+            mason_pkg("rust-analyzer")
             local codelldb = mason_pkg("codelldb")
 
-            -- Prefer the mason-installed binary, but still work (e.g. via a
-            -- rustup toolchain on PATH) if mason has not finished
-            -- installing it yet.
+            -- Prefer the mason-installed binary (its bin/ link works the
+            -- same in mason 1.x and 2.x), but still work via a rustup
+            -- toolchain on PATH if mason has not finished installing it.
             local function rust_analyzer_cmd()
-                if rust_analyzer and rust_analyzer:is_installed() then
-                    local filename = rust_analyzer:get_receipt():get().links.bin["rust-analyzer"]
-                    return { ("%s/%s"):format(rust_analyzer:get_install_path(), filename or "rust-analyzer") }
+                local bin = vim.fn.stdpath("data") .. "/mason/bin/rust-analyzer"
+                if vim.fn.executable(bin) == 1 then
+                    return { bin }
                 end
                 return { "rust-analyzer" }
             end
@@ -62,8 +62,8 @@ return {
                     cmd = rust_analyzer_cmd(),
                     capabilities = require("blink.cmp").get_lsp_capabilities(),
                     on_attach = function(_, bufnr)
-                        -- inlay hints stay off (they crowd the line); <leader>th
-                        -- turns them on for a buffer when wanted
+                        -- inlay hints stay off (they crowd the line); <leader>ih
+                        -- turns them on when wanted
                         -- Deferred a tick so these buffer-local maps win
                         -- over the generic ones lsp.lua's shared LspAttach
                         -- autocmd sets for every server, regardless of
@@ -78,7 +78,9 @@ return {
                             map("<leader>ca", function()
                                 vim.cmd.RustLsp("codeAction")
                             end, "Code action (grouped)")
-                            map("<leader>rr", function()
+                            -- <leader>rr is the generic file runner
+                            -- (lua/config/runner.lua: cargo run here)
+                            map("<leader>rR", function()
                                 vim.cmd.RustLsp("runnables")
                             end, "Runnables")
                             map("<leader>rt", function()
@@ -104,7 +106,7 @@ return {
                                 allFeatures = true,
                                 buildScripts = { enable = true },
                             },
-                            check = { command = "clippy" },
+                            check = { command = "check" },
                             checkOnSave = true,
                             procMacro = { enable = true },
                             -- type hints stay; parameter-name hints stretch

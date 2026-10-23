@@ -10,29 +10,38 @@ return {
     dependencies = { "williamboman/mason.nvim" },
     config = function()
         local ts = require("nvim-treesitter")
-        ts.setup({})
+        ts.setup({ install_dir = vim.fn.stdpath("data") .. "/site" })
         local languages = {
             "c",
-            "rust",
+            "cpp",
             "go",
+            "rust",
+            "ron",
             "python",
+            "pascal",
+            "asm",
+            "nasm",
             "javascript",
             "typescript",
             "tsx",
-            "lua",
             "bash",
-            "json",
-            "yaml",
-            "toml",
-            "ron",
-            "markdown",
-            "markdown_inline",
-            "dockerfile",
-            "html",
-            "css",
+            "lua",
             "vim",
             "vimdoc",
             "query",
+            "html",
+            "xml",
+            "css",
+            "json",
+            "yaml",
+            "toml",
+            "latex",
+            "bibtex",
+            "markdown",
+            "markdown_inline",
+            "make",
+            "cmake",
+            "dockerfile",
         }
         -- parsers are compiled in the background with the tree-sitter CLI,
         -- which comes from mason like the servers and formatters do; on a
@@ -58,7 +67,9 @@ return {
             end
         end
         -- main has no highlight/indent = enable: both are switched on per
-        -- buffer, for whichever filetype has a parser
+        -- buffer, for whichever filetype has a parser. LaTeX keeps
+        -- VimTeX's indentation, which knows environments and items.
+        local keep_indent = { tex = true, plaintex = true, bib = true }
         vim.api.nvim_create_autocmd("FileType", {
             group = vim.api.nvim_create_augroup("treesitter", { clear = true }),
             callback = function(args)
@@ -66,7 +77,9 @@ return {
                 if not lang or not pcall(vim.treesitter.start, args.buf, lang) then
                     return
                 end
-                vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+                if not keep_indent[args.match] then
+                    vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+                end
             end,
         })
     end,

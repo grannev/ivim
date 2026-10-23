@@ -2,7 +2,7 @@ return {
     "stevearc/conform.nvim",
     dependencies = { "williamboman/mason.nvim" },
     -- keys below would otherwise make this lazy; keep it loaded so the
-    -- island's Format button and the mason installs below work at once
+    -- mason installs below run at startup
     lazy = false,
     opts = {
         formatters_by_ft = {
@@ -19,9 +19,10 @@ return {
             lua = { "stylua" },
             json = { "prettier" },
         },
-        -- formatting is on demand only (<leader>cf or the island's Format
-        -- button), never on save
+        -- formatting is on demand only (<leader>lf), never on save; the
+        -- island's Format button calls vim.lsp.buf.format directly
         format_on_save = false,
+        -- anything without a formatter above is formatted by its server
         default_format_opts = { lsp_format = "fallback" },
         -- a missing formatter falls back to the LSP quietly instead of a
         -- warning
@@ -29,7 +30,7 @@ return {
     },
     keys = {
         {
-            "<leader>cf",
+            "<leader>lf",
             function()
                 require("conform").format({ async = true })
             end,

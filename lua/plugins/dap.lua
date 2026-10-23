@@ -16,30 +16,31 @@ return {
                 opts = {},
             },
         },
+        -- <leader>b is buffers; the debugger lives under <leader>D
         keys = {
-            { "<leader>bb", function() require("dap").toggle_breakpoint() end, desc = "Toggle breakpoint" },
+            { "<leader>Db", function() require("dap").toggle_breakpoint() end, desc = "Toggle breakpoint" },
             {
-                "<leader>bB",
+                "<leader>DB",
                 function()
                     require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
                 end,
                 desc = "Conditional breakpoint",
             },
-            { "<leader>bc", function() require("dap").continue() end, desc = "Continue / start" },
-            { "<leader>bi", function() require("dap").step_into() end, desc = "Step into" },
-            { "<leader>bo", function() require("dap").step_over() end, desc = "Step over" },
-            { "<leader>bO", function() require("dap").step_out() end, desc = "Step out" },
-            { "<leader>br", function() require("dap").repl.toggle() end, desc = "Toggle REPL" },
-            { "<leader>bt", function() require("dap").terminate() end, desc = "Terminate" },
-            { "<leader>bu", function() require("dapui").toggle() end, desc = "Toggle debug UI" },
+            { "<leader>Dc", function() require("dap").continue() end, desc = "Continue / start" },
+            { "<leader>Di", function() require("dap").step_into() end, desc = "Step into" },
+            { "<leader>Do", function() require("dap").step_over() end, desc = "Step over" },
+            { "<leader>DO", function() require("dap").step_out() end, desc = "Step out" },
+            { "<leader>Dr", function() require("dap").repl.toggle() end, desc = "Toggle REPL" },
+            { "<leader>Dt", function() require("dap").terminate() end, desc = "Terminate" },
+            { "<leader>Du", function() require("dapui").toggle() end, desc = "Toggle debug UI" },
             { "<F5>", function() require("dap").continue() end, desc = "Continue / start" },
             { "<F9>", function() require("dap").toggle_breakpoint() end, desc = "Toggle breakpoint" },
             { "<F10>", function() require("dap").step_over() end, desc = "Step over" },
             { "<F11>", function() require("dap").step_into() end, desc = "Step into" },
         },
         config = function()
-            -- Quiet dot/diamond signs to match the diagnostics gutter
-            -- markers in config/options.lua, reusing their highlight groups.
+            -- Dot/diamond signs coloured with the diagnostics' highlight
+            -- groups.
             vim.fn.sign_define("DapBreakpoint", { text = "●", texthl = "DiagnosticError", numhl = "" })
             vim.fn.sign_define("DapBreakpointCondition", { text = "◆", texthl = "DiagnosticError", numhl = "" })
             vim.fn.sign_define("DapBreakpointRejected", { text = "●", texthl = "DiagnosticHint", numhl = "" })
@@ -47,7 +48,7 @@ return {
 
             local dap, dapui = require("dap"), require("dapui")
             -- Open the UI the moment a session starts and close it when the
-            -- session ends, instead of relying on <leader>bu every time.
+            -- session ends, instead of relying on <leader>Du every time.
             dap.listeners.after.event_initialized["dapui_config"] = function()
                 dapui.open()
             end

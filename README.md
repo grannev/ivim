@@ -5,40 +5,115 @@ A Neovim configuration built around
 screen is the editor's status line, notification area and buffer switcher.
 Commands and their output use Neovim's native display.
 
-Lazy.nvim, LSP through mason, treesitter, telescope, blink.cmp, conform,
-gitsigns and nvim-tree, with a local graphite palette inspired by macOS.
-Rust gets its own layer on top: rustaceanvim, crates.nvim and a debugger
-(nvim-dap) wired to a mason-installed codelldb.
+What the editor *does* comes from
+[dotfiles.nvim](https://github.com/grannev/dotfiles.nvim): native tabs, LSP
+with delayed popups, Telescope, Oil, Trouble, Spectre, a floating terminal
+with LazyGit, a file runner, sessions, C/C++ body folds, LaTeX through
+VimTeX, ru/en spellcheck and a config health check. What it *looks like* is
+iVim's own: the graphite palette, transparent panels, quiet gutter marks and
+no status line. On top of both sits iVim's Rust layer (rustaceanvim,
+crates.nvim, nvim-dap with codelldb) and conform for formatters.
 
 ## Appearance
 
-`colors/ivim.lua` owns the palette: transparent editor surfaces, muted
-Tree-sitter accents, italic control keywords, a subtle current-line highlight,
-an 80-column guide and rounded transparent panels.
-Panels use the terminal background with blending disabled, hiding buffer text
-behind them while preserving the terminal's transparency.
-Absolute line numbers and quiet git marks stay beside the code. Diagnostics
-use underlines; press `<leader>d` for details. The command line appears when
-needed, and the island owns mode, file state and editor actions.
+`colors/ivim.lua` owns every colour, including those of the plugins that
+came from dotfiles.nvim (tab line, indent guides, reference highlights,
+inlay hints, the code-action mark): transparent editor surfaces, muted
+Tree-sitter accents, italic control keywords, a subtle current-line
+highlight, an 80-column guide and rounded transparent panels. Panels use the
+terminal background with blending disabled. Diagnostics use underlines and
+letters in the gutter (E W I H), as do TODO comments (T F H W N P) and code
+actions (A); TODO keywords keep vivid colours so they stand out, and the
+whole comment — its /* or // included — takes the keyword's colour. The
+command line appears when needed, and the island owns mode, file state and
+editor actions.
 
-Commands (`:`, `/`, `?`) and their output stay in Neovim. The island command
-interface is disabled in `lua/plugins/island.lua`; its source is preserved on
-the `archive/island-command-ui-2026-09-19` branches in this repository and
-island-shell. Clicking diagnostic counters in the island panel shows
-up to three problems in the current file; clicking a row jumps to its location.
+## Island
 
-Telescope is the primary file navigator (`<leader>ff`); the compact file tree
-is available with `<leader>e`. Completion documentation appears after a short
-delay. Completion opens automatically: `Tab` and `Shift-Tab` move through the
-list, while `Enter` accepts the selected item. `Ctrl-Backspace` deletes the
-previous word. Quotes and brackets are left untouched; pressing `Enter` after
-an opening brace creates a closed block and places the cursor one indentation
-level inside it. Scrolling remains immediate, without animation plugins.
+`lua/plugins/island.lua` loads island.nvim and keeps lualine off; see
+CLAUDE.md for the contract. `:NvimConfigHealth` (`<leader>ch`) has an
+*Island* section that says whether the token is there, the plugin is
+loaded and the status line is hidden. `:IslandTask <cmd>` runs a command
+with a progress pill, `:IslandPing` checks the connection. Oil, terminal
+and Trouble buffers are unlisted, so the island's buffer list shows files
+only.
+
+## Keys
+
+Leader is `Space`.
+
+    Files and search
+    <leader>e   Oil, floating          -        Oil, parent directory
+    <leader>ff  find files             <leader>fg  live grep
+    <leader>fb  buffers                <leader>fh  help
+    <leader>ft  TODOs                  <leader>sr  project search/replace
+    <leader>sR  replace word           <leader>sF  replace in file
+
+    Buffers, windows, tabs
+    <leader>w / q   write / quit       <leader>sv / sh  vertical / horizontal split
+    <leader>bn/bp/bd/bl  buffers       Ctrl-h/j/k/l  move between windows
+    Ctrl-Up/Down, Ctrl-Alt-Left/Right  resize
+    <leader>tt/tc/to  new / close / only tab
+    Alt-Left/Right  previous / next tab, Alt-1..9 jump, Alt-Shift-Left/Right move
+
+    LSP
+    gd gD gi gr  definition, declaration, implementation, references
+    K            hover (Rust: hover actions)
+    <leader>gt   implementation in a new tab
+    <leader>rn   rename                <leader>ca  code action
+    <leader>lf   format (conform, LSP fallback)
+    <leader>ld   line diagnostics      [d / ]d  previous / next diagnostic
+    <leader>ih   inlay hints           <leader>uh  popup hints
+    The diagnostic under the cursor opens after 0.5 s; with popup hints on,
+    hover follows after 3 s and completion opens by itself.
+
+    Completion
+    Tab opens the menu after a word and moves down, Shift-Tab up, Enter
+    accepts. With the menu closed, Enter between a typed pair — (|) {|} "|"
+    — opens a line between the halves. Nothing inserts pairs on its own.
+
+    Git, terminal, run
+    ]c / [c      next / previous hunk  <leader>gp/gr/gb  preview, reset, blame
+    <leader>gg   LazyGit               Ctrl-\  floating terminal, Esc leaves it
+    <leader>rr   run the current file (cargo run in a Cargo project)
+    <leader>mm   :make, <leader>mo/mc/mn/mp  quickfix
+
+    Rust (in .rs buffers)
+    <leader>rR runnables, rt testables, rd debuggables, rm expand macro,
+    ro Cargo.toml, re explain error
+
+    Debug
+    <leader>Db / DB  breakpoint / conditional   F5 / <leader>Dc  continue
+    F10 / F11, <leader>Do/Di/DO  step over / into / out
+    <leader>Dr REPL, Dt terminate, Du UI, F9 breakpoint
+
+    Diagnostics and problems
+    <leader>xx project, xb buffer, xr references, xq quickfix, xt TODOs
+    ]t / [t  next / previous TODO
+
+    Folds (C/C++ fold only function bodies)
+    za / <leader>z  toggle     zM  fold all bodies     zR  open all
+
+    Sessions (per working directory)
+    <leader>ss / sl / sd  save / load / delete, :SessionInfo
+
+    Spell (on for tex, markdown, text, gitcommit)
+    <leader>sp toggle, sa / sA add, su undo add, sf suggestions
+
+    LaTeX (in .tex buffers)
+    <leader>ll compile, lv view in Evince, le errors, lt TOC, lk stop,
+    lc clean, li info
+
+    Comments
+    gcc / gc  line comment, gbc / gb  block comment (C/C++: /* */)
 
 ## Layout
 
-    init.lua                 loads config.options, config.keymaps, config.lazy
-    lua/config/              options, keymaps, the lazy.nvim bootstrap
+    init.lua                 options, colours, config modules, then lazy
+    colors/ivim.lua          the palette, for every plugin
+    lua/config/              options, keymaps, lazy bootstrap and the
+                             behaviour modules (folds, sessions, runner,
+                             spell, popup hints, health, ...)
     lua/plugins/*.lua        one spec file per concern
     lua/plugins/island.lua   the island layer (see CLAUDE.md)
     lua/plugins/rust.lua     rustaceanvim, crates.nvim
@@ -46,4 +121,6 @@ level inside it. Scrolling remains immediate, without animation plugins.
     lazy-lock.json           pinned plugin versions
 
 `~/.config/nvim` is a symlink to this directory. Indentation is four
-spaces everywhere (`.editorconfig`, `.stylua.toml`).
+spaces everywhere (`.editorconfig`, `.stylua.toml`). `:NvimConfigRepair`
+(`<leader>cr`) installs missing mason packages and system tools (apt or
+pacman); LazyGit has to be installed separately for `<leader>gg`.
