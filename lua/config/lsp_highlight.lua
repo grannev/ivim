@@ -1,6 +1,6 @@
 -- Other uses of the symbol under the cursor light up once the cursor has
 -- rested on it for a moment, and go dark as soon as it moves or typing
--- starts. Colours live in colors/ivim.lua (LspReference*).
+-- starts.
 local group = vim.api.nvim_create_augroup("LspDocumentHighlight", { clear = true })
 local highlight_timer = nil
 

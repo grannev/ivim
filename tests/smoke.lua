@@ -56,7 +56,7 @@ end
 local function run()
     test("startup leaves no messages", function()
         eq(vim.api.nvim_exec2("messages", { output = true }).output, "", ":messages")
-        eq(vim.g.colors_name, "ivim", "colorscheme")
+        eq(vim.g.colors_name, "tokyonight-night", "colorscheme")
     end)
 
     -- lazy.nvim fires VeryLazy on UIEnter, which a headless run never sees

@@ -62,7 +62,7 @@ return {
             PERF = { icon = "P", alt = { "OPTIM", "PERFORMANCE", "OPTIMIZE" } },
             TEST = { icon = "T", color = "test", alt = { "TESTING", "PASSED", "FAILED" } },
         },
-        -- the colours are groups in colors/ivim.lua, brighter than the rest
+        -- the colours are groups in lua/plugins/colorscheme.lua, brighter than the rest
         -- of the palette so a keyword stands out of a muted comment
         colors = {
             error = { "TodoColorError" },

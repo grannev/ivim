@@ -1,6 +1,7 @@
 -- The tab line: "N:name+" per tab page, so Alt-N has a number to aim at,
 -- and on a narrow screen the tabs around the current one stay visible
--- while the rest collapse into "... N". Colours live in colors/ivim.lua.
+-- while the rest collapse into "... N". Colours live in
+-- lua/plugins/colorscheme.lua (Tabby*).
 local function tabline(line)
     local max_name_length = 11
 

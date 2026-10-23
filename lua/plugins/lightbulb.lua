@@ -1,5 +1,5 @@
 -- A mark in the sign column where a code action is available
--- (<leader>ca applies it). Colour: LightBulbSign in colors/ivim.lua.
+-- (<leader>ca applies it). Colour: LightBulbSign in lua/plugins/colorscheme.lua.
 return {
     "kosayoda/nvim-lightbulb",
     event = { "BufReadPost", "BufNewFile" },

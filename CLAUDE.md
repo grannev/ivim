@@ -15,8 +15,11 @@ and LSP progress arrive as pills, and the pointer on the island opens a
 panel with the buffer list and Save / Format / Close.
 
 Behaviour (plugins, keymaps, popups, completion flow) follows
-`github.com/grannev/dotfiles.nvim`; appearance is iVim's own — every
-colour lives in `colors/ivim.lua`, plugin specs set none.
+`github.com/grannev/dotfiles.nvim`. The theme is tokyonight (night style,
+transparent in a terminal); colours only this config has — TODO keywords,
+the start screen, the tab line — are set in its `on_highlights` in
+`lua/plugins/colorscheme.lua`, plugin specs set none. `colors/ivim.lua` is
+the previous graphite palette, kept as an alternative.
 
 ## Who owns what
 

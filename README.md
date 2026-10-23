@@ -16,12 +16,14 @@ crates.nvim, nvim-dap with codelldb) and conform for formatters.
 
 ## Appearance
 
-`colors/ivim.lua` owns every colour, including those of the plugins that
-came from dotfiles.nvim (tab line, indent guides, reference highlights,
-inlay hints, the code-action mark): transparent editor surfaces, muted
-Tree-sitter accents, italic control keywords, a subtle current-line
-highlight, an 80-column guide and rounded transparent panels. Panels use the
-terminal background with blending disabled. Diagnostics use underlines and
+The theme is [tokyonight](https://github.com/folke/tokyonight.nvim) in its
+night style — deep navy with blue, azure and cyan accents, italic comments
+and keywords — set up in `lua/plugins/colorscheme.lua`. It colours every
+installed plugin on its own; the groups only this config has (TODO
+keywords, the start screen, the tab line, the code-action mark) are added
+there too. In a terminal the editor and its panels stay transparent, so the
+wallpaper shows through. `colors/ivim.lua`, the previous graphite palette,
+is still available: `:colorscheme ivim`. Diagnostics use underlines and
 letters in the gutter (E W I H), as do TODO comments (T F H W N P) and code
 actions (A); TODO keywords keep vivid colours so they stand out, and the
 whole comment — its /* or // included — takes the keyword's colour. The
@@ -120,7 +122,8 @@ Leader is `Space`.
 ## Layout
 
     init.lua                 options, colours, config modules, then lazy
-    colors/ivim.lua          the palette, for every plugin
+    lua/plugins/colorscheme.lua  tokyonight and this config's own groups
+    colors/ivim.lua          the previous graphite palette (:colorscheme ivim)
     lua/config/              options, keymaps, lazy bootstrap and the
                              behaviour modules (folds, sessions, runner,
                              spell, popup hints, health, ...)

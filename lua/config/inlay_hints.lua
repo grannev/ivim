@@ -1,6 +1,5 @@
 -- Inlay hints are off until <leader>ih; the switch is global, so buffers
--- whose server attaches later follow it too. Colours live in
--- colors/ivim.lua (LspInlayHint).
+-- whose server attaches later follow it too.
 local group = vim.api.nvim_create_augroup("LspInlayHints", { clear = true })
 local enabled = false
 

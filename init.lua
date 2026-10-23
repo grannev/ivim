@@ -1,5 +1,4 @@
 require("config.options")
-vim.cmd.colorscheme("ivim")
 require("config.filetypes")
 require("config.popup_hints")
 require("config.keymaps")

@@ -2,7 +2,7 @@
 -- knowing in an empty editor. It replaces Neovim's own intro (shortmess I)
 -- and behaves like it: a float drawn over the empty buffer, gone as soon
 -- as there is something else to look at — typing, another buffer, another
--- window. Colours live in colors/ivim.lua (IvimIntro*).
+-- window. Colours live in lua/plugins/colorscheme.lua (IvimIntro*).
 local M = {}
 
 vim.opt.shortmess:append("I")
