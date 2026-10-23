@@ -18,9 +18,28 @@ local function mix(from, to, t)
     return ("#%02X%02X%02X"):format(rgb[1], rgb[2], rgb[3])
 end
 
--- the wallpaper behind the transparent terminal, on average (navy-teal,
--- #142630 to #1D343E behind the code)
+-- what the terminal shows behind the code, on average: the wallpaper
+-- through Alacritty's own background (navy-teal, #142630 to #1D343E)
 local wallpaper = "#182F39"
+
+-- Alacritty (colors.transparent_background_colors) lays every cell
+-- background over the wallpaper at the window's opacity, as it does its
+-- own background: shown = 0.75·bg + 0.25·W, and the wallpaper shows as
+-- 0.75·#1B2B34 + 0.25·W. The background that shows as `target` on average
+-- is then #1B2B34 + (target - wallpaper) / 0.75; the wallpaper's own
+-- shading still comes through it.
+local alacritty_bg, opacity = "#1B2B34", 0.75
+local function through(target)
+    local function channel(hex, i)
+        return tonumber(hex:sub(2 * i, 2 * i + 1), 16)
+    end
+    local rgb = {}
+    for i = 1, 3 do
+        local value = channel(alacritty_bg, i) + (channel(target, i) - channel(wallpaper, i)) / opacity
+        rgb[i] = math.max(0, math.min(255, math.floor(value + 0.5)))
+    end
+    return ("#%02X%02X%02X"):format(rgb[1], rgb[2], rgb[3])
+end
 
 local function own_groups(hl, c)
     -- todo-comments keywords (lua/plugins/todo-comments.lua): the vivid
@@ -104,24 +123,21 @@ return {
             on_highlights = function(hl, c)
                 own_groups(hl, c)
                 if terminal then
-                    -- Alacritty paints any explicit background opaque over
-                    -- the wallpaper (navy-teal, #142630 to #1D343E behind the
-                    -- code): tokyonight's purple-grey current line and
-                    -- near-black 80th column stood out as solid bars. These
-                    -- are a step lighter than the wallpaper, in its own hue.
-                    hl.CursorLine = { bg = "#1F3A47" }
-                    hl.ColorColumn = { bg = "#1B333E" }
+                    -- tokyonight's purple-grey current line and near-black
+                    -- 80th column stood out as bars over the wallpaper; these
+                    -- show a step lighter than it, in its own hue
+                    hl.CursorLine = { bg = through("#1F3A47") }
+                    hl.ColorColumn = { bg = through("#1B333E") }
                     -- the winbar (dropbar's path) and the status line as
                     -- clear as the editor
                     hl.WinBar = { fg = c.fg_dark }
                     hl.WinBarNC = { fg = c.dark5 }
                     hl.StatusLine = { fg = c.fg_dark }
                     hl.StatusLineNC = { fg = c.dark5 }
-                    -- Markdown blocks as tinted glass: the theme's colour
-                    -- mixed into the wallpaper's, since a real translucent
-                    -- background is not something the terminal draws
+                    -- Markdown blocks as tinted glass: a little of the theme's
+                    -- colour over the wallpaper
                     local function glass(color, amount)
-                        return mix(wallpaper, color, amount)
+                        return through(mix(wallpaper, color, amount))
                     end
                     hl.RenderMarkdownCode = { bg = glass(c.bg_dark, 0.55) }
                     local inline = { fg = c.blue, bg = glass(c.terminal_black, 0.45) }
@@ -131,7 +147,7 @@ return {
                         hl["RenderMarkdownH" .. i .. "Bg"] = { bg = glass(color, 0.14) }
                     end
                     -- the scrollbar's thumb, a step past the current line
-                    hl.SatelliteBar = { bg = "#284552" }
+                    hl.SatelliteBar = { bg = through("#284552") }
                 else
                     hl.SatelliteBar = { bg = c.bg_highlight }
                 end

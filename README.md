@@ -28,8 +28,15 @@ is still available: `:colorscheme ivim`. Diagnostics use underlines and
 letters in the gutter (E W I H), as do TODO comments (T F H W N P) and code
 actions (A); TODO keywords keep vivid colours so they stand out, and the
 whole comment — its /* or // included — takes the keyword's colour. The
-command line appears when needed, and the island owns mode, file state and
-editor actions.
+command line has the bottom row, right under the status line.
+
+The terminal draws every coloured background translucent too (Alacritty's
+`colors.transparent_background_colors`, set in
+`~/.config/alacritty/alacritty.toml`): the current line, the 80th column,
+code blocks and selections let the wallpaper's shading through. The
+colours set for the terminal in `lua/plugins/colorscheme.lua` are
+computed so that, laid over the wallpaper at the window's 0.75 opacity,
+they show as intended.
 
 Around and inside the code (`lua/plugins/visual.lua`): a winbar above each
 window with the path to the symbol under the cursor (dropbar; click a part,

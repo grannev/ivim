@@ -32,7 +32,9 @@ o.termguicolors = true
 o.showmode = false
 o.ruler = false
 o.showcmd = false
-o.cmdheight = 0
+-- the command line has the last row to itself, right under the status
+-- line (lua/config/statusline.lua)
+o.cmdheight = 1
 -- the tab line appears once there is a second tab page (:tabnew)
 o.showtabline = 1
 o.pumheight = 8
