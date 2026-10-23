@@ -90,6 +90,18 @@ local groups = {
     TodoColorInfo = { fg = "#89DCEB" },
     TodoColorHint = { fg = "#94E2D5" },
     TodoColorDefault = { fg = "#F2CDCD" },
+    -- the start screen (lua/config/intro.lua): the logo's rows run from
+    -- blue to purple, the keys are blue, the rest stays quiet
+    IvimIntroLogo1 = { fg = "#8AB4F8" },
+    IvimIntroLogo2 = { fg = "#94B0F1" },
+    IvimIntroLogo3 = { fg = "#9FACEA" },
+    IvimIntroLogo4 = { fg = "#A9A8E4" },
+    IvimIntroLogo5 = { fg = "#B4A4DD" },
+    IvimIntroLogo6 = { fg = "#BEA0D6" },
+    IvimIntroShadow = { fg = p.faint },
+    IvimIntroKey = { fg = p.blue, bold = true },
+    IvimIntroDesc = { fg = p.text },
+    IvimIntroMuted = { fg = p.muted },
     IblIndent = { fg = p.rule },
     IblScope = { fg = p.border },
     TabbyFill = {},

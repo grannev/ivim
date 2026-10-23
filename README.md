@@ -28,6 +28,10 @@ whole comment — its /* or // included — takes the keyword's colour. The
 command line appears when needed, and the island owns mode, file state and
 editor actions.
 
+A bare `nvim` opens on iVim's own start screen (`lua/config/intro.lua`): the
+name in block letters and the few keys worth knowing in an empty editor; it
+goes away as soon as you type or open something.
+
 ## Island
 
 `lua/plugins/island.lua` loads island.nvim and keeps lualine off; see
