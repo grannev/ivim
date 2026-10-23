@@ -1,4 +1,5 @@
 require("config.options")
+require("config.statusline")
 require("config.neovide")
 require("config.filetypes")
 require("config.popup_hints")

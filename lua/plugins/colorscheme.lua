@@ -52,6 +52,30 @@ local function own_groups(hl, c)
     hl.TabbyHidden = { fg = c.comment, italic = true }
     hl.TabbyCurrent = { fg = c.blue1, bg = c.bg_highlight, bold = true }
 
+    -- the status line (lua/config/statusline.lua): the mode as a pill in its
+    -- own colour, the rest as text on the clear background
+    local mode_colours = {
+        Normal = c.blue,
+        Insert = c.green,
+        Visual = c.magenta,
+        Replace = c.red,
+        Command = c.yellow,
+        Terminal = c.teal,
+    }
+    for kind, colour in pairs(mode_colours) do
+        hl["IvimStatusMode" .. kind] = { fg = c.black, bg = colour, bold = true }
+        hl["IvimStatusModeCap" .. kind] = { fg = colour }
+    end
+    hl.IvimStatusText = { fg = c.fg_dark }
+    hl.IvimStatusMuted = { fg = c.comment }
+    hl.IvimStatusFile = { fg = c.fg, bold = true }
+    hl.IvimStatusModified = { fg = c.orange }
+    hl.IvimStatusBranch = { fg = c.purple }
+    hl.IvimStatusAdded = { fg = c.green }
+    hl.IvimStatusChanged = { fg = c.blue }
+    hl.IvimStatusRemoved = { fg = c.red }
+    hl.IvimStatusPosition = { fg = c.blue1 }
+
     -- the code-action mark in the gutter (lua/plugins/lightbulb.lua)
     hl.LightBulbSign = { fg = c.yellow }
 
@@ -87,9 +111,12 @@ return {
                     -- are a step lighter than the wallpaper, in its own hue.
                     hl.CursorLine = { bg = "#1F3A47" }
                     hl.ColorColumn = { bg = "#1B333E" }
-                    -- the winbar (dropbar's path) as clear as the editor
+                    -- the winbar (dropbar's path) and the status line as
+                    -- clear as the editor
                     hl.WinBar = { fg = c.fg_dark }
                     hl.WinBarNC = { fg = c.dark5 }
+                    hl.StatusLine = { fg = c.fg_dark }
+                    hl.StatusLineNC = { fg = c.dark5 }
                     -- Markdown blocks as tinted glass: the theme's colour
                     -- mixed into the wallpaper's, since a real translucent
                     -- background is not something the terminal draws

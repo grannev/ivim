@@ -2,7 +2,8 @@
 
 A Neovim configuration built around
 [island-shell](../island-shell) — the Dynamic Island at the top of the
-screen is the editor's status line, notification area and buffer switcher.
+screen shows the editor's state, its notifications and its buffers; a status
+line in the same style sits at the bottom too.
 Commands and their output use Neovim's native display.
 
 What the editor *does* comes from
@@ -10,8 +11,8 @@ What the editor *does* comes from
 with delayed popups, Telescope, Oil, Trouble, Spectre, a floating terminal
 a file runner, sessions, C/C++ body folds, LaTeX through
 VimTeX, ru/en spellcheck and a config health check. What it *looks like* is
-iVim's own: the graphite palette, transparent panels, quiet gutter marks and
-no status line. On top of both sits iVim's Rust layer (rustaceanvim,
+iVim's own: tokyonight on a transparent terminal, letters in the gutter and
+its own status line. On top of both sits iVim's Rust layer (rustaceanvim,
 crates.nvim, nvim-dap with codelldb) and conform for formatters.
 
 ## Appearance
@@ -39,6 +40,12 @@ TSV files shown as an aligned table with a sticky header (csvview), and
 Markdown rendered in place — headings, code blocks, checkboxes, tables —
 with the raw text back under the cursor and in Insert mode
 (render-markdown).
+
+The status line (`lua/config/statusline.lua`, no plugin) is one, global, at
+the bottom: the mode as a rounded pill in its colour, the git branch and its
+changes, the file and whether it is modified; on the right the diagnostics
+as the gutter's letters, the language servers, the filetype and the
+position. In the terminal it has no background, like the editor.
 
 A bare `nvim` opens on iVim's own start screen (`lua/config/intro.lua`): the
 name in block letters, a search line and the few keys worth knowing in an
@@ -72,7 +79,7 @@ and with splits or tab pages open they close the window as usual.
 `lua/plugins/island.lua` loads island.nvim and keeps lualine off; see
 CLAUDE.md for the contract. `:NvimConfigHealth` (`<leader>ch`) has an
 *Island* section that says whether the token is there, the plugin is
-loaded and the status line is hidden. `:IslandTask <cmd>` runs a command
+loaded and the status line is at the bottom. `:IslandTask <cmd>` runs a command
 with a progress pill, `:IslandPing` checks the connection. Oil, terminal
 and Trouble buffers are unlisted, so the island's buffer list shows files
 only.

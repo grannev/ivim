@@ -174,13 +174,13 @@ function M.run()
     add_check(lines, "undo dir", directory(vim.fn.stdpath("state") .. "/undo"))
     add_check(lines, "sessions dir", directory(vim.fn.stdpath("state") .. "/sessions"))
 
-    -- the island is the status line (lua/plugins/island.lua); without its
-    -- token the plugin stays silent and nothing else says so
+    -- the island (lua/plugins/island.lua): without its token the plugin
+    -- stays silent and nothing else says so
     add_section(lines, "Island")
     local token = (vim.env.XDG_CONFIG_HOME or vim.env.HOME .. "/.config") .. "/island-shell/nvim-token"
     add_check(lines, "nvim-token", vim.fn.filereadable(token) == 1, vim.fn.fnamemodify(token, ":~"))
     add_check(lines, "island.nvim loaded", package.loaded["island"] ~= nil)
-    add_check(lines, "status line hidden (laststatus = 0)", vim.o.laststatus == 0)
+    add_check(lines, "status line at the bottom (laststatus = 3)", vim.o.laststatus == 3)
     add_check(lines, "RPC server", vim.v.servername ~= "", vim.v.servername)
 
     add_section(lines, "Live LSP")

@@ -22,7 +22,9 @@ return {
         lazy = false,
         priority = 100,
         config = function()
-            require("island").setup({ cmdline = false, results = false })
+            -- statusline = true: the island leaves 'laststatus' alone, so
+            -- iVim's own status line (lua/config/statusline.lua) stays
+            require("island").setup({ cmdline = false, results = false, statusline = true })
         end,
     },
 }

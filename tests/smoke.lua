@@ -78,6 +78,19 @@ local function run()
         eq(package.loaded["lualine"], nil, "lualine loaded")
     end)
 
+    test("status line: global, at the bottom, mode, file, git, position", function()
+        eq(vim.o.laststatus, 3, "laststatus")
+        vim.cmd("edit sample.lua")
+        check(wait_for(function()
+            return vim.b.gitsigns_status_dict ~= nil
+        end, 5000), "gitsigns for the branch")
+        local text = require("config.statusline").render():gsub("%%#[^#]+#", "")
+        for _, part in ipairs({ "NORMAL", "sample.lua", "%l:%c", "lua" }) do
+            check(text:find(part, 1, true), ("%q in the status line: %s"):format(part, text))
+        end
+        check(text:find(vim.b.gitsigns_status_dict.head, 1, true), "the branch in the status line: " .. text)
+    end)
+
     test("keymaps", function()
         local expected = {
             { "n", " ff" }, { "n", " fg" }, { "n", " e" }, { "n", "-" },
