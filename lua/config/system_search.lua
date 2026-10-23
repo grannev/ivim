@@ -1,7 +1,8 @@
 -- Search the whole system for files and folders by name. The start
 -- screen (lua/config/intro.lua) lists the results under its search line;
 -- <leader>fs opens them in a Telescope picker from anywhere. Each query
--- runs plocate when it is installed, fd otherwise; Enter opens a file, or
+-- runs plocate (when its database exists) together with fd over the home
+-- and working folders, or fd over the whole system; Enter opens a file, or
 -- a folder in Oil, and a query that is itself an existing path opens that.
 local M = {}
 
@@ -10,16 +11,17 @@ local fd = vim.fn.executable("fd") == 1 and "fd" or "fdfind"
 -- big enough to drown every query
 local excluded = { "/proc", "/sys", "/dev", "/run", ".git", "node_modules" }
 local max_results = "500"
+local home = vim.fn.expand("~")
 
---- The search command for a query, or nil for an empty one.
-function M.command(query)
-    query = vim.trim(query or "")
-    if query == "" then
-        return nil
-    end
-    if vim.fn.executable("plocate") == 1 then
-        return { "plocate", "--ignore-case", "--limit", max_results, "--", query }
-    end
+-- plocate answers at once from its database, but only once updatedb has
+-- built one (right after installing there is none, and it says nothing)
+local plocate_db = "/var/lib/plocate/plocate.db"
+
+local function plocate_ready()
+    return vim.fn.executable("plocate") == 1 and vim.fn.filereadable(plocate_db) == 1
+end
+
+local function fd_command(query, root)
     local cmd = { fd, "--hidden", "--ignore-case", "--fixed-strings", "--absolute-path", "--max-results", max_results }
     for _, pattern in ipairs(excluded) do
         vim.list_extend(cmd, { "--exclude", pattern })
@@ -29,8 +31,43 @@ function M.command(query)
     if query:find("/", 1, true) then
         table.insert(cmd, "--full-path")
     end
-    vim.list_extend(cmd, { "--", query, "/" })
+    vim.list_extend(cmd, { "--", query, root })
     return cmd
+end
+
+--- The searches to run for a query, together; their results may overlap.
+--- plocate's database is up to a day old, so fd also walks the home and
+--- the working folder, where new files appear. Without plocate's database,
+--- fd walks the whole system.
+function M.commands(query)
+    query = vim.trim(query or "")
+    if query == "" then
+        return {}
+    end
+    if not plocate_ready() then
+        return { fd_command(query, "/") }
+    end
+    local commands = {
+        { "plocate", "--ignore-case", "--limit", max_results, "--", query },
+        fd_command(query, home),
+    }
+    local cwd = vim.fn.getcwd()
+    if cwd ~= home and cwd:sub(1, #home + 1) ~= home .. "/" then
+        table.insert(commands, fd_command(query, cwd))
+    end
+    return commands
+end
+
+--- The same searches as one shell command, for Telescope's job finder.
+function M.command(query)
+    local commands = M.commands(query)
+    if #commands == 0 then
+        return nil
+    end
+    local script = vim.tbl_map(function(cmd)
+        return table.concat(vim.tbl_map(vim.fn.shellescape, cmd), " ")
+    end, commands)
+    return { "sh", "-c", table.concat(script, "; ") }
 end
 
 -- the query itself, when it names something that exists: ~/it/coding,
@@ -45,8 +82,6 @@ function M.typed_path(query)
         return path
     end
 end
-
-local home = vim.fn.expand("~")
 
 --- Order raw results for a query, best first: the name itself, then names
 --- starting with it, then containing it; under the home folder before
@@ -150,6 +185,7 @@ end
 --- Open the picker; `default_text` starts the query.
 function M.open(opts)
     opts = opts or {}
+    local seen = {}
     require("lazy").load({ plugins = { "telescope.nvim" } })
     local pickers = require("telescope.pickers")
     local finders = require("telescope.finders")
@@ -161,7 +197,21 @@ function M.open(opts)
         .new({}, {
             prompt_title = "Files and folders on the system",
             default_text = opts.default_text,
-            finder = finders.new_async_job({ command_generator = M.command, entry_maker = entry_maker }),
+            finder = finders.new_async_job({
+                command_generator = function(query)
+                    seen = {}
+                    return M.command(query)
+                end,
+                -- the searches overlap: each path once
+                entry_maker = function(line)
+                    local path = line:gsub("/$", "")
+                    if seen[path] then
+                        return nil
+                    end
+                    seen[path] = true
+                    return entry_maker(path)
+                end,
+            }),
             sorter = conf.file_sorter({}),
             previewer = previewer(),
             -- one fd run per pause in typing, not per key

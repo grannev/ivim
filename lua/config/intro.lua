@@ -192,10 +192,10 @@ local function stop_search()
     if state.timer then
         state.timer:stop()
     end
-    if state.job then
-        pcall(state.job.kill, state.job, 15)
-        state.job = nil
+    for _, job in ipairs(state.jobs or {}) do
+        pcall(job.kill, job, 15)
     end
+    state.jobs = nil
 end
 
 -- Results ----------------------------------------------------------------
@@ -250,7 +250,7 @@ local function render_results()
         end
     end
     if #results == 0 then
-        local status = state.job and "  searching…" or "  nothing found"
+        local status = state.jobs and "  searching…" or "  nothing found"
         table.insert(lines, status)
         table.insert(marks, { 0, 0, #status, "IvimIntroMuted" })
     end
@@ -301,50 +301,68 @@ local function run_search(query)
         return
     end
     open_results()
-    local cmd = require("config.system_search").command(query)
+    local search = require("config.system_search")
     local generation = state.generation
-    local found, pending = {}, ""
+    -- several searches at once (plocate and fd), their lines merged and
+    -- each path kept once
+    local found, seen = {}, {}
     local function update()
         if state and state.generation == generation then
-            state.results = require("config.system_search").rank(query, found)
+            state.results = search.rank(query, found)
             state.selected = math.min(state.selected, math.max(1, #state.results))
             render_results()
         end
     end
     local redraw = vim.uv.new_timer()
-    local ok, job = pcall(vim.system, cmd, {
-        text = true,
-        stdout = function(_, data)
-            if not data then
-                return
-            end
-            local chunk = pending .. data
-            local last_newline = chunk:match(".*()\n")
-            if last_newline then
-                for line in chunk:sub(1, last_newline - 1):gmatch("[^\n]+") do
-                    table.insert(found, line)
+    local running = 0
+    local function finished()
+        running = running - 1
+        if running > 0 then
+            return
+        end
+        redraw:stop()
+        redraw:close()
+        if state and state.generation == generation then
+            state.jobs = nil
+        end
+        update()
+    end
+    state.jobs = {}
+    for _, cmd in ipairs(search.commands(query)) do
+        local pending = ""
+        local ok, job = pcall(vim.system, cmd, {
+            text = true,
+            stdout = function(_, data)
+                if not data then
+                    return
                 end
-                pending = chunk:sub(last_newline + 1)
-            else
-                pending = chunk
-            end
-        end,
-    }, function()
-        vim.schedule(function()
-            redraw:stop()
-            redraw:close()
-            if state and state.generation == generation then
-                state.job = nil
-            end
-            update()
-        end)
-    end)
-    if not ok then
-        state.job = nil
+                local chunk = pending .. data
+                local last_newline = chunk:match(".*()\n")
+                if last_newline then
+                    for line in chunk:sub(1, last_newline - 1):gmatch("[^\n]+") do
+                        line = line:gsub("/$", "")
+                        if not seen[line] then
+                            seen[line] = true
+                            table.insert(found, line)
+                        end
+                    end
+                    pending = chunk:sub(last_newline + 1)
+                else
+                    pending = chunk
+                end
+            end,
+        }, vim.schedule_wrap(finished))
+        if ok then
+            running = running + 1
+            table.insert(state.jobs, job)
+        end
+    end
+    if running == 0 then
+        redraw:close()
+        state.jobs = nil
         update()
         return
     end
-    state.job = job
     -- show what has arrived so far while fd is still walking the disk
     redraw:start(150, 150, vim.schedule_wrap(update))
     render_results()
