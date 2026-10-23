@@ -32,6 +32,12 @@ A bare `nvim` opens on iVim's own start screen (`lua/config/intro.lua`): the
 name in block letters and the few keys worth knowing in an empty editor; it
 goes away as soon as you type or open something.
 
+Motion is animated (`lua/plugins/animate.lua`): neoscroll glides
+`Ctrl-d/u/f/b/e/y`, `zz/zt/zb` and the mouse wheel line by line, slowing
+down as it arrives, and `Ctrl-d/u` and `n/N` end with the cursor line in
+the middle of the window; mini.animate draws the cursor's jumps and
+windows resizing, opening and closing. It works in any terminal.
+
 ## Island
 
 `lua/plugins/island.lua` loads island.nvim and keeps lualine off; see

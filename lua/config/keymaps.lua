@@ -74,8 +74,5 @@ map("n", "<leader>mp", "<cmd>cprevious<CR>", { desc = "Previous quickfix item" }
 map("v", "J", ":m '>+1<CR>gv=gv")
 map("v", "K", ":m '<-2<CR>gv=gv")
 
--- keep cursor centered
-map("n", "<C-d>", "<C-d>zz")
-map("n", "<C-u>", "<C-u>zz")
-map("n", "n", "nzzzv")
-map("n", "N", "Nzzzv")
+-- Ctrl-d/u and n/N keep the cursor centred too, animated: see
+-- lua/plugins/animate.lua
