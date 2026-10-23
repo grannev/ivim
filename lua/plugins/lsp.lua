@@ -115,27 +115,26 @@ return {
             max_concurrent_installers = 1,
             ui = { border = "rounded", width = 0.85, height = 0.75 },
         },
+        config = function(_, opts)
+            require("mason").setup(opts)
+            -- once the UI is up, fetch whatever lua/config/tools.lua lists
+            -- and is not there yet
+            vim.api.nvim_create_autocmd("User", {
+                pattern = "VeryLazy",
+                once = true,
+                callback = function()
+                    require("config.tools").ensure_all()
+                end,
+            })
+        end,
     },
     {
         "williamboman/mason-lspconfig.nvim",
         event = { "BufReadPre", "BufNewFile" },
         dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig" },
         opts = {
-            ensure_installed = {
-                "lua_ls",
-                "pyright",
-                "bashls",
-                "html",
-                "cssls",
-                "jsonls",
-                "yamlls",
-                "ts_ls",
-                "dockerls",
-                "texlab",
-                "gopls",
-                "clangd",
-            },
-            -- every installed server starts on its own, except
+            -- installing is lua/config/tools.lua's job; this only starts
+            -- the servers. Every installed server starts on its own, except
             -- rust-analyzer: rustaceanvim (lua/plugins/rust.lua) owns that
             -- client, and a second one would race it for the buffer. stylua
             -- and ruff are in mason as conform's formatters

@@ -124,6 +124,8 @@ Leader is `Space`.
     lua/config/              options, keymaps, lazy bootstrap and the
                              behaviour modules (folds, sessions, runner,
                              spell, popup hints, health, ...)
+    lua/config/tools.lua     every mason package, in one list: installed
+                             at startup, checked by :NvimConfigHealth
     lua/plugins/*.lua        one spec file per concern
     lua/plugins/island.lua   the island layer (see CLAUDE.md)
     lua/plugins/rust.lua     rustaceanvim, crates.nvim

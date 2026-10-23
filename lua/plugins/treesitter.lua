@@ -44,27 +44,17 @@ return {
             "dockerfile",
         }
         -- parsers are compiled in the background with the tree-sitter CLI,
-        -- which comes from mason like the servers and formatters do; on a
-        -- machine without it the parsers wait for that install to finish.
-        -- `install` skips parsers that are already there.
+        -- which comes from mason like the servers and formatters do
+        -- (lua/config/tools.lua); on a machine without it the parsers wait
+        -- for that install to finish. `install` skips parsers that are
+        -- already there.
         local function install_parsers()
             ts.install(languages)
         end
         if vim.fn.executable("tree-sitter") == 1 then
             install_parsers()
         else
-            local ok, registry = pcall(require, "mason-registry")
-            local found, cli = false, nil
-            if ok then
-                found, cli = pcall(registry.get_package, "tree-sitter-cli")
-            end
-            if found and not cli:is_installed() then
-                cli:install():once("closed", function()
-                    vim.schedule(install_parsers)
-                end)
-            elseif found then
-                install_parsers()
-            end
+            require("config.tools").when_installed("tree-sitter-cli", install_parsers)
         end
         -- main has no highlight/indent = enable: both are switched on per
         -- buffer, for whichever filetype has a parser. LaTeX keeps

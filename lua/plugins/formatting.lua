@@ -1,9 +1,7 @@
 return {
     "stevearc/conform.nvim",
-    dependencies = { "williamboman/mason.nvim" },
-    -- keys below would otherwise make this lazy; keep it loaded so the
-    -- mason installs below run at startup
-    lazy = false,
+    -- the formatters themselves come from mason (lua/config/tools.lua)
+    cmd = { "ConformInfo" },
     opts = {
         formatters_by_ft = {
             go = { "gofmt" },
@@ -38,19 +36,4 @@ return {
             desc = "Format buffer",
         },
     },
-    config = function(_, opts)
-        require("conform").setup(opts)
-        -- the formatters above come from mason like the language servers do;
-        -- fetch the ones that are not there yet (gofmt ships with Go)
-        local ok, registry = pcall(require, "mason-registry")
-        if not ok then
-            return
-        end
-        for _, name in ipairs({ "ruff", "stylua", "prettier" }) do
-            local found, package = pcall(registry.get_package, name)
-            if found and not package:is_installed() then
-                package:install()
-            end
-        end
-    end,
 }

@@ -25,27 +25,7 @@ local system_tools = {
 
 local optional_tools = { "go", "rustc", "cargo", "xelatex", "lualatex" }
 
--- everything lua/plugins/{lsp,formatting,rust,treesitter}.lua fetch
-local mason_packages = {
-    "lua-language-server",
-    "pyright",
-    "bash-language-server",
-    "html-lsp",
-    "css-lsp",
-    "json-lsp",
-    "yaml-language-server",
-    "typescript-language-server",
-    "dockerfile-language-server",
-    "texlab",
-    "gopls",
-    "clangd",
-    "rust-analyzer",
-    "codelldb",
-    "ruff",
-    "stylua",
-    "prettier",
-    "tree-sitter-cli",
-}
+local tools = require("config.tools")
 
 local function package_manager()
     for _, name in ipairs({ "apt", "pacman" }) do
@@ -136,7 +116,7 @@ function M.repair()
 
     local missing_mason = vim.tbl_filter(function(name)
         return not mason_installed(name)
-    end, mason_packages)
+    end, tools.packages())
 
     vim.fn.mkdir(vim.fn.stdpath("state") .. "/undo", "p")
     vim.fn.mkdir(vim.fn.stdpath("state") .. "/sessions", "p")
@@ -183,9 +163,11 @@ function M.run()
         add_check(lines, cmd, executable(cmd))
     end
 
-    add_section(lines, "Mason packages")
-    for _, name in ipairs(mason_packages) do
-        add_check(lines, name, mason_installed(name))
+    for _, group in ipairs(tools.groups) do
+        add_section(lines, "Mason: " .. group.name)
+        for _, name in ipairs(group.packages) do
+            add_check(lines, name, mason_installed(name))
+        end
     end
 
     add_section(lines, "State directories")

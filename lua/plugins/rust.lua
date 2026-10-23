@@ -17,28 +17,8 @@ return {
         lazy = false,
         dependencies = { "williamboman/mason.nvim", "saghen/blink.cmp" },
         config = function()
-            -- rust-analyzer and codelldb come from mason, like every other
-            -- server and formatter in this config (see lsp.lua and
-            -- formatting.lua); install them the same way formatting.lua
-            -- installs stylua/prettier/ruff.
-            local function mason_pkg(name)
-                local ok, registry = pcall(require, "mason-registry")
-                if not ok then
-                    return nil
-                end
-                local found, pkg = pcall(registry.get_package, name)
-                if not found then
-                    return nil
-                end
-                if not pkg:is_installed() then
-                    pkg:install()
-                end
-                return pkg
-            end
-
-            mason_pkg("rust-analyzer")
-            local codelldb = mason_pkg("codelldb")
-
+            -- rust-analyzer and codelldb come from mason like every other
+            -- tool here; lua/config/tools.lua lists and installs them.
             -- Prefer the mason-installed binary (its bin/ link works the
             -- same in mason 1.x and 2.x), but still work via a rustup
             -- toolchain on PATH if mason has not finished installing it.
@@ -51,7 +31,7 @@ return {
             end
 
             local dap_adapter = nil
-            if codelldb and codelldb:is_installed() then
+            if vim.fn.executable("codelldb") == 1 then
                 local ext = vim.uv.os_uname().sysname == "Darwin" and ".dylib" or ".so"
                 local liblldb = vim.fn.expand("$MASON/opt/lldb/lib/liblldb" .. ext)
                 dap_adapter = require("rustaceanvim.config").get_codelldb_adapter(vim.fn.exepath("codelldb"), liblldb)
