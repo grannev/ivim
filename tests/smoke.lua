@@ -152,6 +152,10 @@ local function run()
         check(#vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, {}) > 0, "todo-comments highlighted nothing")
         vim.cmd("redraw!")
 
+        -- the screen row of a buffer line (the winbar sits above line 1)
+        local function row_of(lnum)
+            return vim.fn.screenpos(0, lnum, 1).row
+        end
         local function col_of(row, char)
             for col = 1, vim.o.columns do
                 if vim.fn.screenstring(row, col) == char then
@@ -161,10 +165,11 @@ local function run()
             error(("%q not on screen row %d"):format(char, row))
         end
         -- /* TODO: Something */: the leader looks like the text after TODO
-        eq(vim.fn.screenattr(1, col_of(1, "/")), vim.fn.screenattr(1, col_of(1, "S")), "/* vs Something")
+        local one, two = row_of(1), row_of(2)
+        eq(vim.fn.screenattr(one, col_of(one, "/")), vim.fn.screenattr(one, col_of(one, "S")), "/* vs Something")
         -- int x = 1; // FIXME: later: the code keeps its own colours
-        eq(vim.fn.screenattr(2, col_of(2, "/")), vim.fn.screenattr(2, col_of(2, "l")), "// vs later")
-        check(vim.fn.screenattr(2, col_of(2, "i")) ~= vim.fn.screenattr(2, col_of(2, "/")), "code before // is not lit")
+        eq(vim.fn.screenattr(two, col_of(two, "/")), vim.fn.screenattr(two, col_of(two, "l")), "// vs later")
+        check(vim.fn.screenattr(two, col_of(two, "i")) ~= vim.fn.screenattr(two, col_of(two, "/")), "code before // is not lit")
 
         local signs = {}
         for _, mark in ipairs(vim.api.nvim_buf_get_extmarks(buf, -1, 0, -1, { details = true })) do
@@ -173,6 +178,60 @@ local function run()
             end
         end
         eq(table.concat(signs, " "), "T F N", "TODO signs")
+    end)
+
+    test("winbar path, scrollbar, rainbow brackets, CSV table, rendered Markdown", function()
+        vim.cmd("edit folds.c")
+        check(wait_for(function()
+            return vim.wo.winbar ~= ""
+        end, 3000), "dropbar's winbar on a C file")
+        -- "printf("%d\n", add(1, 2));": the outer and inner parentheses
+        -- in different colours
+        vim.api.nvim_win_set_cursor(0, { 1, 0 })
+        vim.cmd("redraw!")
+        local row = vim.fn.screenpos(0, 10, 1).row
+        local brackets = {}
+        for col = 1, vim.o.columns do
+            if vim.fn.screenstring(row, col) == "(" then
+                table.insert(brackets, vim.fn.screenattr(row, col))
+            end
+        end
+        eq(#brackets, 2, "parentheses on the printf line")
+        check(brackets[1] ~= brackets[2], "nested parentheses in different colours")
+
+        local lines = {}
+        for i = 1, 200 do
+            lines[i] = "-- line " .. i
+        end
+        vim.cmd("enew")
+        vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+        vim.bo.filetype = "lua"
+        vim.api.nvim_exec_autocmds("BufReadPost", { buffer = 0 })
+        check(wait_for(function()
+            vim.cmd("redraw")
+            return #floats() > 0
+        end, 3000), "a scrollbar on a long buffer")
+        vim.cmd("bwipeout!")
+
+        vim.fn.writefile({ "id,name", "1,Alice", "2,Bob" }, "table.csv")
+        vim.cmd("edit table.csv")
+        check(wait_for(function()
+            return require("csvview").is_enabled(0)
+        end, 3000), "csvview on in a CSV buffer")
+
+        vim.fn.writefile({ "# Title", "", "- [ ] todo" }, "notes.md")
+        vim.cmd("edit notes.md")
+        local rendered = function()
+            for name, id in pairs(vim.api.nvim_get_namespaces()) do
+                if name:find("render-markdown", 1, true) and #vim.api.nvim_buf_get_extmarks(0, id, 0, -1, {}) > 0 then
+                    return true
+                end
+            end
+        end
+        check(wait_for(function()
+            vim.cmd("redraw")
+            return rendered()
+        end, 3000), "render-markdown draws the Markdown buffer")
     end)
 
     test("C body folds: zM folds function bodies", function()

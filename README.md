@@ -30,6 +30,16 @@ whole comment — its /* or // included — takes the keyword's colour. The
 command line appears when needed, and the island owns mode, file state and
 editor actions.
 
+Around and inside the code (`lua/plugins/visual.lua`): a winbar above each
+window with the path to the symbol under the cursor (dropbar; click a part,
+or `<leader>;`, for a menu of its siblings), a one-column scrollbar on the
+right with the cursor, search matches, diagnostics and git changes
+(satellite), brackets coloured by nesting depth (rainbow-delimiters), CSV and
+TSV files shown as an aligned table with a sticky header (csvview), and
+Markdown rendered in place — headings, code blocks, checkboxes, tables —
+with the raw text back under the cursor and in Insert mode
+(render-markdown).
+
 A bare `nvim` opens on iVim's own start screen (`lua/config/intro.lua`): the
 name in block letters, a search line and the few keys worth knowing in an
 empty editor. The cursor starts in the search line: typing lists files and
@@ -136,6 +146,11 @@ Leader is `Space`.
 
     Comments
     gcc / gc  line comment, gbc / gb  block comment (C/C++: /* */)
+
+    Winbar and CSV
+    <leader>;  pick a part of the winbar path    [;  start of the current context
+    In CSV/TSV: Tab / Shift-Tab field to field, Enter / Shift-Enter row to
+    row, if / af a field; :CsvViewToggle shows the raw text
 
 ## Layout
 

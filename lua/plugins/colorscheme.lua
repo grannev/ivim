@@ -83,7 +83,13 @@ return {
                     -- are a step lighter than the wallpaper, in its own hue.
                     hl.CursorLine = { bg = "#1F3A47" }
                     hl.ColorColumn = { bg = "#1B333E" }
+                    -- the scrollbar's thumb, a step past the current line
+                    hl.SatelliteBar = { bg = "#284552" }
+                else
+                    hl.SatelliteBar = { bg = c.bg_highlight }
                 end
+                -- the rest of the scrollbar's track stays clear
+                hl.SatelliteBackground = {}
             end,
         })
         vim.cmd.colorscheme("tokyonight-night")
