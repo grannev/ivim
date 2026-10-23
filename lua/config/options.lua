@@ -12,9 +12,12 @@ o.wrap = false
 o.ignorecase = true
 o.smartcase = true
 o.signcolumn = "yes:1"
--- CursorHold stays rare: the diagnostic and hover popups run on their own
--- timers (lua/plugins/lsp.lua), nothing else should fire while typing
-o.updatetime = 3000
+-- CursorHold after a second's rest: soon enough for the code-action mark
+-- (lua/plugins/lightbulb.lua), rare enough that a pause in typing does not
+-- set off LSP requests, island updates and a swap-file write each time.
+-- The diagnostic and hover popups run on their own timers
+-- (lua/plugins/lsp.lua).
+o.updatetime = 1000
 o.timeoutlen = 400
 o.splitright = true
 o.splitbelow = true

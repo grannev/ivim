@@ -2,7 +2,8 @@
 -- neoscroll owns scrolling (Ctrl-d/u/f/b/e/y, zz/zt/zb, the mouse wheel),
 -- mini.animate owns windows resizing, opening and closing — its own scroll
 -- animation stays off. The cursor itself is not animated anywhere: a
--- cursor that trails behind each keypress reads as lag.
+-- cursor that trails behind each keypress reads as lag. The durations are
+-- short for the same reason: the motion should be over before the next key.
 
 -- Neovide glides the scroll itself (lua/config/neovide.lua); neither
 -- plugin loads there, and Ctrl-d/u and n/N only keep the centring.
@@ -36,31 +37,31 @@ local function scroll_keys()
     -- half a page, then the cursor line glides to the middle of the window
     -- (post_hook below), like <C-d>zz did before
     map("<C-d>", function()
-        neoscroll.ctrl_d({ duration = 250, info = "center" })
+        neoscroll.ctrl_d({ duration = 150, info = "center" })
     end, "Scroll down half a page")
     map("<C-u>", function()
-        neoscroll.ctrl_u({ duration = 250, info = "center" })
+        neoscroll.ctrl_u({ duration = 150, info = "center" })
     end, "Scroll up half a page")
     map("<C-f>", function()
-        neoscroll.ctrl_f({ duration = 400 })
+        neoscroll.ctrl_f({ duration = 250 })
     end, "Scroll down a page")
     map("<C-b>", function()
-        neoscroll.ctrl_b({ duration = 400 })
+        neoscroll.ctrl_b({ duration = 250 })
     end, "Scroll up a page")
     map("<C-e>", function()
-        neoscroll.scroll(0.1, { move_cursor = false, duration = 100 })
+        neoscroll.scroll(0.1, { move_cursor = false, duration = 60 })
     end, "Scroll down a little")
     map("<C-y>", function()
-        neoscroll.scroll(-0.1, { move_cursor = false, duration = 100 })
+        neoscroll.scroll(-0.1, { move_cursor = false, duration = 60 })
     end, "Scroll up a little")
     map("zz", function()
-        neoscroll.zz({ half_win_duration = 200 })
+        neoscroll.zz({ half_win_duration = 120 })
     end, "Center the cursor line")
     map("zt", function()
-        neoscroll.zt({ half_win_duration = 200 })
+        neoscroll.zt({ half_win_duration = 120 })
     end, "Cursor line to the top")
     map("zb", function()
-        neoscroll.zb({ half_win_duration = 200 })
+        neoscroll.zb({ half_win_duration = 120 })
     end, "Cursor line to the bottom")
 
     -- the wheel scrolls the window under the pointer, three lines a notch
@@ -70,7 +71,7 @@ local function scroll_keys()
             if win == 0 then
                 return
             end
-            neoscroll.scroll(lines, { move_cursor = false, duration = 80, winid = win })
+            neoscroll.scroll(lines, { move_cursor = false, duration = 50, winid = win })
         end, "Scroll with the mouse")
     end
 
@@ -84,7 +85,7 @@ local function scroll_keys()
                 return
             end
             vim.cmd("normal! zv")
-            neoscroll.zz({ half_win_duration = 200 })
+            neoscroll.zz({ half_win_duration = 120 })
         end, { desc = key == "n" and "Next match, centred" or "Previous match, centred" })
     end
 end
@@ -113,7 +114,7 @@ return {
                     vim.schedule(function()
                         cursor_arrived()
                         if info == "center" then
-                            require("neoscroll").zz({ half_win_duration = 150 })
+                            require("neoscroll").zz({ half_win_duration = 80 })
                         end
                     end)
                 end,
@@ -131,13 +132,13 @@ return {
                 cursor = { enable = false },
                 scroll = { enable = false },
                 resize = {
-                    timing = animate.gen_timing.quadratic({ easing = "out", duration = 120, unit = "total" }),
+                    timing = animate.gen_timing.quadratic({ easing = "out", duration = 80, unit = "total" }),
                 },
                 open = {
-                    timing = animate.gen_timing.quadratic({ easing = "out", duration = 150, unit = "total" }),
+                    timing = animate.gen_timing.quadratic({ easing = "out", duration = 90, unit = "total" }),
                 },
                 close = {
-                    timing = animate.gen_timing.quadratic({ easing = "out", duration = 150, unit = "total" }),
+                    timing = animate.gen_timing.quadratic({ easing = "out", duration = 90, unit = "total" }),
                 },
             })
         end,

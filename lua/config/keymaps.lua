@@ -76,3 +76,11 @@ map("v", "K", ":m '<-2<CR>gv=gv")
 
 -- Ctrl-d/u and n/N keep the cursor centred too, animated: see
 -- lua/plugins/animate.lua
+
+-- Neovim's own LSP keys (grr, grn, gra, gri, grt, grx) make every gr — Go
+-- to references here — wait timeoutlen for a possible second r; gr, gi,
+-- <leader>rn and <leader>ca (lua/plugins/lsp.lua) already do their jobs
+for _, lhs in ipairs({ "grr", "grn", "gra", "gri", "grt", "grx" }) do
+    pcall(vim.keymap.del, "n", lhs)
+    pcall(vim.keymap.del, "x", lhs)
+end

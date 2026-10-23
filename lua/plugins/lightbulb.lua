@@ -8,7 +8,9 @@ return {
         link_highlights = false,
         autocmd = {
             enabled = true,
-            updatetime = 500,
+            -- leave 'updatetime' alone (lua/config/options.lua): any other
+            -- value here overwrites the global option
+            updatetime = -1,
             events = { "CursorHold", "CursorHoldI" },
         },
         sign = { enabled = true, text = "A", hl = "LightBulbSign" },

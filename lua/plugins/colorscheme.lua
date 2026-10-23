@@ -73,7 +73,18 @@ return {
                 sidebars = terminal and "transparent" or "dark",
                 floats = terminal and "transparent" or "dark",
             },
-            on_highlights = own_groups,
+            on_highlights = function(hl, c)
+                own_groups(hl, c)
+                if terminal then
+                    -- Alacritty paints any explicit background opaque over
+                    -- the wallpaper (navy-teal, #142630 to #1D343E behind the
+                    -- code): tokyonight's purple-grey current line and
+                    -- near-black 80th column stood out as solid bars. These
+                    -- are a step lighter than the wallpaper, in its own hue.
+                    hl.CursorLine = { bg = "#1F3A47" }
+                    hl.ColorColumn = { bg = "#1B333E" }
+                end
+            end,
         })
         vim.cmd.colorscheme("tokyonight-night")
     end,
