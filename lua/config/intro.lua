@@ -491,6 +491,9 @@ function M.close()
     state = nil
 end
 
+--- Whether `buf` is the empty, unnamed buffer the start screen covers.
+M.is_empty = is_empty
+
 --- What Enter would open now (for the tests).
 function M.selection()
     return state and state.results[state.selected]

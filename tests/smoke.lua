@@ -320,6 +320,61 @@ local function run()
         vim.api.nvim_del_autocmd(id)
     end)
 
+    test(":q back to the start screen (Neovide only)", function()
+        eq(vim.fn.maparg("q", "c", true), "", "a :q abbreviation outside Neovide")
+        -- what lua/config/neovide.lua turns on under Neovide
+        require("config.menu_quit").setup()
+        local columns, lines = vim.o.columns, vim.o.lines
+        vim.o.columns, vim.o.lines = 200, 50
+        local function typed(cmd)
+            return pcall(vim.api.nvim_feedkeys, vim.keycode(cmd), "tx", false)
+        end
+        -- the start screen up over an empty buffer (the cursor itself is
+        -- in its search line)
+        local function on_start_screen()
+            for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+                if vim.api.nvim_win_get_config(win).relative == "" then
+                    return require("config.intro").is_empty(vim.api.nvim_win_get_buf(win)) and #floats() >= 1
+                end
+            end
+        end
+
+        vim.cmd("edit sample.lua")
+        local file = vim.api.nvim_get_current_buf()
+        typed(":q<CR>")
+        check(on_start_screen(), ":q in the last window shows the start screen")
+        eq(vim.fn.buflisted(file), 0, "the file closed")
+
+        require("config.intro").close()
+        vim.cmd("edit sample.lua")
+        vim.api.nvim_buf_set_lines(0, 0, 0, false, { "-- changed" })
+        vim.v.errmsg = ""
+        typed(":q<CR>")
+        eq(vim.fn.expand("%:t"), "sample.lua", ":q with unsaved changes stays")
+        eq(vim.v.errmsg, "E37: No write since last change (add ! to override)", "the E37 message")
+        typed(":q!<CR>")
+        check(on_start_screen(), ":q! drops the changes and shows the start screen")
+
+        require("config.intro").close()
+        vim.cmd("edit sample.lua")
+        vim.api.nvim_buf_set_lines(0, 0, 0, false, { "-- written" })
+        typed(":wq<CR>")
+        check(on_start_screen(), ":wq shows the start screen")
+        eq(vim.fn.readfile("sample.lua")[1], "-- written", ":wq wrote the file")
+
+        -- last: after a :q that really closes a window, keys fed with
+        -- nvim_feedkeys(..., "x") no longer expand abbreviations (typed
+        -- ones do), and a plain :q here would end the test run
+        require("config.intro").close()
+        vim.cmd("edit sample.lua | vsplit")
+        typed(":q<CR>")
+        eq(#vim.api.nvim_tabpage_list_wins(0), 1, "windows after :q in a split")
+        eq(vim.fn.expand("%:t"), "sample.lua", ":q in a split only closes the window")
+
+        require("config.intro").close()
+        vim.o.columns, vim.o.lines = columns, lines
+    end)
+
     test(":NvimConfigHealth lists the mason packages by group", function()
         vim.cmd("edit sample.lua")
         require("config.health").run()

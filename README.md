@@ -52,7 +52,10 @@ Neovide works with this config (it needs a build from July 2026 or later
 for Neovim 0.13's API metadata). `lua/config/neovide.lua` gives it the
 terminal's font and 0.75 opacity, tokyonight paints its own navy there, and
 neoscroll and mini.animate stay off since Neovide animates the cursor and
-scrolling itself.
+scrolling itself. In Neovide, `:q` in the last window goes back to the start
+screen instead of closing the window (`lua/config/menu_quit.lua`); `:q` on
+the start screen quits. `:wq` and `:x` write first, `:q!` drops the changes,
+and with splits or tab pages open they close the window as usual.
 
 ## Island
 
