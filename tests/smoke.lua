@@ -217,13 +217,14 @@ local function run()
         vim.o.columns, vim.o.lines = columns, lines
     end)
 
-    test("system search: a name opens the file, a folder opens in Oil, a path opens directly", function()
+    test("start screen search: results under the line, a file opens, a folder opens in Oil", function()
         local columns, lines = vim.o.columns, vim.o.lines
         vim.o.columns, vim.o.lines = 200, 50
+        local intro = require("config.intro")
         local tag = tostring(vim.uv.hrtime())
         local file = vim.fn.getcwd() .. "/ivimsearch" .. tag .. ".lua"
         local dir = vim.fn.getcwd() .. "/ivimfolder" .. tag
-        vim.fn.writefile({ "found" }, file)
+        vim.fn.writefile({ "-- found" }, file)
         vim.fn.mkdir(dir)
 
         -- typing in the search line, as Insert mode would report it
@@ -233,42 +234,61 @@ local function run()
             vim.api.nvim_exec_autocmds("TextChangedI", { buffer = line })
         end
 
-        local function search_from_start_screen(query)
+        local function search(query, expected)
             vim.cmd("enew")
-            require("config.intro").open()
+            intro.open()
             vim.wait(100)
             type_query(query)
             check(wait_for(function()
-                return vim.bo.filetype == "TelescopePrompt"
-            end, 3000), "typing opens the picker")
-            local picker = require("telescope.actions.state").get_current_picker(vim.api.nvim_get_current_buf())
-            check(wait_for(function()
-                return picker:get_selection() ~= nil
-            end, 15000), "a selected result for " .. query)
-            eq(picker:_get_prompt(), query, "query carried into the picker")
+                return intro.selection() == expected
+            end, 15000), ("%s listed first for %q (got %s)"):format(expected, query, tostring(intro.selection())))
+            eq(vim.bo.filetype, "", "still in the search line, no picker")
             keys("<CR>")
             vim.wait(300)
         end
 
-        search_from_start_screen("ivimsearch" .. tag)
+        vim.cmd("enew")
+        intro.open()
+        vim.wait(100)
+        local box = {}
+        for _, win in ipairs(floats()) do
+            for _, line in ipairs(vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(win), 0, -1, false)) do
+                if line:find("^[╭│╰]") then
+                    table.insert(box, vim.fn.strdisplaywidth(line))
+                end
+            end
+        end
+        eq(#box, 3, "search box rows")
+        check(box[1] == box[2] and box[2] == box[3], "search box rows of one width: " .. table.concat(box, ", "))
+
+        search("ivimsearch" .. tag, file)
         eq(vim.api.nvim_buf_get_name(0), file, "file opened")
-        search_from_start_screen("ivimfolder" .. tag)
+        search("ivimfolder" .. tag, dir)
         eq(vim.bo.filetype, "oil", "folder opened in Oil")
         check(vim.api.nvim_buf_get_name(0):find("ivimfolder" .. tag, 1, true), "Oil shows the folder")
-        search_from_start_screen(file)
+
+        -- a typed path that exists opens without waiting for results
+        vim.cmd("enew")
+        intro.open()
+        vim.wait(100)
+        type_query(file)
+        keys("<CR>")
+        vim.wait(300)
         eq(vim.api.nvim_buf_get_name(0), file, "typed path opened")
 
+        -- Esc leaves the results for the editor, the start screen stays
         vim.cmd("enew")
-        require("config.intro").open()
+        intro.open()
         vim.wait(100)
         type_query("zzzznothing" .. tag)
-        wait_for(function()
-            return vim.bo.filetype == "TelescopePrompt"
-        end, 3000)
+        vim.wait(3000, function()
+            return #floats() == 3
+        end)
+        eq(#floats(), 3, "start screen, search line and results")
         keys("<Esc>")
-        vim.wait(300)
-        eq(#floats(), 2, "Esc in the picker brings the start screen back")
-        require("config.intro").close()
+        vim.wait(200)
+        eq(#floats(), 1, "only the start screen after Esc")
+        intro.close()
         vim.o.columns, vim.o.lines = columns, lines
     end)
 

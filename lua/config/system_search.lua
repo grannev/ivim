@@ -1,5 +1,6 @@
--- Search the whole system for files and folders by name (<leader>fs, and
--- the search line on the start screen, lua/config/intro.lua). Each query
+-- Search the whole system for files and folders by name. The start
+-- screen (lua/config/intro.lua) lists the results under its search line;
+-- <leader>fs opens them in a Telescope picker from anywhere. Each query
 -- runs plocate when it is installed, fd otherwise; Enter opens a file, or
 -- a folder in Oil, and a query that is itself an existing path opens that.
 local M = {}
@@ -10,7 +11,8 @@ local fd = vim.fn.executable("fd") == 1 and "fd" or "fdfind"
 local excluded = { "/proc", "/sys", "/dev", "/run", ".git", "node_modules" }
 local max_results = "500"
 
-local function command(query)
+--- The search command for a query, or nil for an empty one.
+function M.command(query)
     query = vim.trim(query or "")
     if query == "" then
         return nil
@@ -33,7 +35,7 @@ end
 
 -- the query itself, when it names something that exists: ~/it/coding,
 -- /etc/hosts, ./src
-local function typed_path(query)
+function M.typed_path(query)
     query = vim.trim(query or "")
     if not query:match("^[~/.]") then
         return nil
@@ -42,6 +44,43 @@ local function typed_path(query)
     if vim.fn.isdirectory(path) == 1 or vim.fn.filereadable(path) == 1 then
         return path
     end
+end
+
+local home = vim.fn.expand("~")
+
+--- Order raw results for a query, best first: the name itself, then names
+--- starting with it, then containing it; under the home folder before
+--- elsewhere; visible before hidden; shorter paths first.
+function M.rank(query, paths)
+    local q = vim.trim(query):lower():gsub("/+$", "")
+    -- for "coding/ivim" the name to judge is the last part
+    local last = q:match("([^/]+)$") or q
+    local scored = {}
+    for _, path in ipairs(paths) do
+        path = path:gsub("/$", "")
+        local name = vim.fs.basename(path):lower()
+        local score = 0
+        if name == last then
+            score = 3000
+        elseif name:sub(1, #last) == last then
+            score = 2000
+        elseif name:find(last, 1, true) then
+            score = 1000
+        end
+        if path:sub(1, #home + 1) == home .. "/" then
+            score = score + 300
+        end
+        if path:find("/%.") then
+            score = score - 200
+        end
+        table.insert(scored, { path = path, score = score - #path })
+    end
+    table.sort(scored, function(a, b)
+        return a.score > b.score
+    end)
+    return vim.tbl_map(function(item)
+        return item.path
+    end, scored)
 end
 
 local function entry_maker(path)
@@ -108,8 +147,7 @@ local function previewer()
     })
 end
 
---- Open the picker. `default_text` starts the query; `on_cancel` runs
---- when it is closed without opening anything.
+--- Open the picker; `default_text` starts the query.
 function M.open(opts)
     opts = opts or {}
     require("lazy").load({ plugins = { "telescope.nvim" } })
@@ -123,7 +161,7 @@ function M.open(opts)
         .new({}, {
             prompt_title = "Files and folders on the system",
             default_text = opts.default_text,
-            finder = finders.new_async_job({ command_generator = command, entry_maker = entry_maker }),
+            finder = finders.new_async_job({ command_generator = M.command, entry_maker = entry_maker }),
             sorter = conf.file_sorter({}),
             previewer = previewer(),
             -- one fd run per pause in typing, not per key
@@ -139,7 +177,7 @@ function M.open(opts)
                     -- this picker's own selection: action_state's global one
                     -- still holds the previous picker's until results arrive
                     local entry = picker:get_selection()
-                    local target = typed_path(query) or (entry and entry.value)
+                    local target = M.typed_path(query) or (entry and entry.value)
                     -- nothing to open yet (Enter before the first results):
                     -- the picker stays, with the query
                     if not target then
@@ -149,15 +187,9 @@ function M.open(opts)
                     -- a folder opens in Oil (default_file_explorer)
                     vim.cmd.edit(vim.fn.fnameescape(target))
                 end)
-                local function cancel()
-                    actions.close(prompt_bufnr)
-                    if opts.on_cancel then
-                        vim.schedule(opts.on_cancel)
-                    end
-                end
-                -- one Esc closes it, as it closes the start screen's line
-                map({ "i", "n" }, "<Esc>", cancel)
-                map({ "i", "n" }, "<C-c>", cancel)
+                -- one Esc closes it, as it leaves the start screen's line
+                map({ "i", "n" }, "<Esc>", actions.close)
+                map({ "i", "n" }, "<C-c>", actions.close)
                 return true
             end,
         })
