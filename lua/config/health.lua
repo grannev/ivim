@@ -68,7 +68,6 @@ end
 local function open_float(lines)
     local buf = vim.api.nvim_create_buf(false, true)
     vim.bo[buf].bufhidden = "wipe"
-    vim.bo[buf].filetype = "markdown"
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
     vim.bo[buf].modifiable = false
 
@@ -84,8 +83,10 @@ local function open_float(lines)
         title = " Neovim config health ",
         title_pos = "center",
     })
-    -- spellcheck would underline every package name
-    vim.wo.spell = false
+    -- markdown highlighting without the markdown filetype: its FileType
+    -- autocmds (spellcheck in lua/config/spell.lua) would run in the
+    -- window that was current before this one
+    pcall(vim.treesitter.start, buf, "markdown")
 
     local opts = { buffer = buf, silent = true }
     vim.keymap.set("n", "q", "<cmd>close<CR>", opts)
