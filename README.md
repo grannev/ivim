@@ -43,16 +43,16 @@ buffer or open something.
 Motion is animated (`lua/plugins/animate.lua`): neoscroll glides
 `Ctrl-d/u/f/b/e/y`, `zz/zt/zb` and the mouse wheel line by line, slowing
 down as it arrives, and `Ctrl-d/u` and `n/N` end with the cursor line in
-the middle of the window; mini.animate draws the cursor's jumps and
-windows resizing, opening and closing. It works in any terminal.
+the middle of the window; mini.animate draws windows resizing, opening and
+closing. The cursor itself jumps without animation. It works in any terminal.
 
 ## Neovide
 
 Neovide works with this config (it needs a build from July 2026 or later
 for Neovim 0.13's API metadata). `lua/config/neovide.lua` gives it the
 terminal's font and 0.75 opacity, tokyonight paints its own navy there, and
-neoscroll and mini.animate stay off since Neovide animates the cursor and
-scrolling itself. In Neovide, `:q` in the last window goes back to the start
+neoscroll and mini.animate stay off since Neovide animates scrolling itself;
+its cursor animation is off, as in the terminal. In Neovide, `:q` in the last window goes back to the start
 screen instead of closing the window (`lua/config/menu_quit.lua`); `:q` on
 the start screen quits. `:wq` and `:x` write first, `:q!` drops the changes,
 and with splits or tab pages open they close the window as usual.

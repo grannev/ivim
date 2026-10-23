@@ -1,10 +1,11 @@
 -- Motion, split between two plugins so nothing is animated twice:
 -- neoscroll owns scrolling (Ctrl-d/u/f/b/e/y, zz/zt/zb, the mouse wheel),
--- mini.animate owns the cursor jumping, windows resizing, opening and
--- closing — its own scroll animation stays off.
+-- mini.animate owns windows resizing, opening and closing — its own scroll
+-- animation stays off. The cursor itself is not animated anywhere: a
+-- cursor that trails behind each keypress reads as lag.
 
--- Neovide glides the scroll and the cursor itself (lua/config/neovide.lua);
--- neither plugin loads there, and Ctrl-d/u and n/N only keep the centring.
+-- Neovide glides the scroll itself (lua/config/neovide.lua); neither
+-- plugin loads there, and Ctrl-d/u and n/N only keep the centring.
 if vim.g.neovide then
     vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Scroll down half a page" })
     vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Scroll up half a page" })
@@ -16,8 +17,8 @@ end
 -- neoscroll silences CursorMoved while it scrolls, one line at a time.
 -- Once it stops, everything listening — the island's cursor position, the
 -- LSP highlight and popup timers — hears about the cursor's final place.
--- mini.animate is disabled for that one event: it would otherwise animate
--- from where the scroll began, and this makes it forget that position.
+-- mini.animate sits that one event out, should its cursor animation ever
+-- be turned back on.
 local function cursor_arrived()
     local disabled = vim.g.minianimate_disable
     vim.g.minianimate_disable = true
@@ -127,9 +128,7 @@ return {
         config = function()
             local animate = require("mini.animate")
             animate.setup({
-                cursor = {
-                    timing = animate.gen_timing.cubic({ easing = "out", duration = 120, unit = "total" }),
-                },
+                cursor = { enable = false },
                 scroll = { enable = false },
                 resize = {
                     timing = animate.gen_timing.quadratic({ easing = "out", duration = 120, unit = "total" }),
