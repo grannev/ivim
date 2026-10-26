@@ -112,6 +112,10 @@ local function own_groups(hl, c)
     hl.IvimStatusRemoved = { fg = c.red }
     hl.IvimStatusPosition = { fg = c.blue1 }
 
+    -- the argument being typed in the signature float: tokyonight marks it
+    -- with a background, which the clear float barely shows
+    hl.BlinkCmpSignatureHelpActiveParameter = { fg = c.orange, bold = true }
+
     -- the code-action mark in the gutter (lua/plugins/lightbulb.lua)
     hl.LightBulbSign = { fg = c.yellow }
 

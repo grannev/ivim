@@ -118,6 +118,61 @@ local function run()
         check(vim.treesitter.highlighter.active[vim.api.nvim_get_current_buf()], "treesitter on C++ (cpp parser)")
     end)
 
+    test("signature float inside a call's parentheses, nothing inserted", function()
+        vim.cmd("edit folds.c")
+        check(wait_for(function()
+            return clients()["clangd"]
+        end), "clangd attaches to C")
+        local function signature_text()
+            local cmp = package.loaded["blink.cmp"]
+            if not (cmp and cmp.is_signature_visible()) then
+                return nil
+            end
+            local win = require("blink.cmp.signature.window").win:get_win()
+            return table.concat(vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(win), 0, -1, false), "\n")
+        end
+        -- Insert mode holds the main loop until it ends (feedkeys "x!"), so
+        -- the checks run from timers inside it and Esc ends it at the end
+        local function poll(predicate, ms, done)
+            local waited = 0
+            local function step()
+                if predicate() or waited >= ms then
+                    return done(predicate())
+                end
+                waited = waited + 50
+                vim.defer_fn(step, 50)
+            end
+            vim.defer_fn(step, 50)
+        end
+        local seen = {}
+        poll(function()
+            return (signature_text() or ""):find("int a, int b", 1, true)
+        end, 10000, function(shown)
+            seen.text = signature_text()
+            seen.shown = shown
+            if shown then
+                seen.config = vim.api.nvim_win_get_config(require("blink.cmp.signature.window").win:get_win())
+            end
+            -- out of the call, the float closes
+            vim.api.nvim_feedkeys(vim.keycode("<Down><End>"), "n", false)
+            poll(function()
+                return signature_text() == nil
+            end, 3000, function(closed)
+                seen.closed = closed
+                vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "n", false)
+            end)
+        end)
+        local line = vim.fn.getline(10)
+        -- right before "2" in add(1, 2): no "(" or "," typed
+        vim.api.nvim_win_set_cursor(0, { 10, line:find("2)", 1, true) - 1 })
+        vim.api.nvim_feedkeys("i", "nx!", false)
+        check(seen.shown, "the signature float shows add's parameters: " .. tostring(seen.text))
+        check(seen.config.relative ~= "" and seen.config.border, "the signature is a bordered float")
+        check(seen.closed, "the float closes outside the call")
+        eq(vim.fn.getline(10), line, "the line after Insert mode")
+        eq(vim.fn.mode(), "n", "back in Normal mode")
+    end)
+
     test("Lua: lua_ls, and formatters never start as servers", function()
         vim.cmd("edit sample.lua")
         check(wait_for(function()
