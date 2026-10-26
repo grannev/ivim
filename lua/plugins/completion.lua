@@ -7,6 +7,9 @@
 -- Inside a call's parentheses in Insert mode the function's signature
 -- shows in a float above the line, the argument being typed in bold; it
 -- inserts nothing. It follows the cursor and closes outside the call.
+-- Accepting a function inserts its name and empty brackets with the cursor
+-- inside (lua/config/no_placeholders.lua): no parameter names to type
+-- over, no Select mode, no snippet templates in the menu.
 
 -- whether the cursor sits after a "(" that has not been closed yet, on
 -- this line or a few above (arguments spread over lines); strings and
@@ -60,7 +63,6 @@ end
 
 return {
     "saghen/blink.cmp",
-    dependencies = "rafamadriz/friendly-snippets",
     version = "1.*",
     event = "InsertEnter",
     config = function(_, opts)
@@ -147,8 +149,25 @@ return {
             use_nvim_cmp_as_default = true,
             nerd_font_variant = "mono",
         },
+        snippets = {
+            expand = function(snippet)
+                vim.snippet.expand(require("config.no_placeholders").strip(snippet))
+            end,
+        },
         sources = {
-            default = { "lsp", "path", "snippets", "buffer" },
+            default = { "lsp", "path", "buffer" },
+            providers = {
+                lsp = {
+                    -- the servers' templates (for, if, static_cast...) are
+                    -- nothing but placeholders
+                    transform_items = function(_, items)
+                        local snippet = require("blink.cmp.types").CompletionItemKind.Snippet
+                        return vim.tbl_filter(function(item)
+                            return item.kind ~= snippet
+                        end, items)
+                    end,
+                },
+            },
         },
     },
 }

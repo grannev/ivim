@@ -51,6 +51,20 @@ local function floats()
     end, vim.api.nvim_list_wins())
 end
 
+-- poll `predicate` from timers: Insert mode entered with feedkeys "x!"
+-- holds the main loop until it ends, so checks inside it run this way
+local function poll(predicate, ms, done)
+    local waited = 0
+    local function step()
+        if predicate() or waited >= ms then
+            return done(predicate())
+        end
+        waited = waited + 50
+        vim.defer_fn(step, 50)
+    end
+    vim.defer_fn(step, 50)
+end
+
 local function keys(lhs)
     vim.api.nvim_feedkeys(vim.keycode(lhs), "mx", false)
 end
@@ -131,19 +145,6 @@ local function run()
             local win = require("blink.cmp.signature.window").win:get_win()
             return table.concat(vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(win), 0, -1, false), "\n")
         end
-        -- Insert mode holds the main loop until it ends (feedkeys "x!"), so
-        -- the checks run from timers inside it and Esc ends it at the end
-        local function poll(predicate, ms, done)
-            local waited = 0
-            local function step()
-                if predicate() or waited >= ms then
-                    return done(predicate())
-                end
-                waited = waited + 50
-                vim.defer_fn(step, 50)
-            end
-            vim.defer_fn(step, 50)
-        end
         local seen = {}
         poll(function()
             return (signature_text() or ""):find("int a, int b", 1, true)
@@ -171,6 +172,55 @@ local function run()
         check(seen.closed, "the float closes outside the call")
         eq(vim.fn.getline(10), line, "the line after Insert mode")
         eq(vim.fn.mode(), "n", "back in Normal mode")
+    end)
+
+    test("accepting a function inserts name() with the cursor inside, no placeholders", function()
+        vim.cmd("edit folds.c")
+        check(wait_for(function()
+            return clients()["clangd"]
+        end), "clangd attaches to C")
+        local seen = {}
+        local function add_index()
+            local items = package.loaded["blink.cmp"] and require("blink.cmp.completion.list").items or {}
+            for i, item in ipairs(items) do
+                if item.label:match("^%s*add%(") or item.filterText == "add" then
+                    return i
+                end
+            end
+        end
+        vim.defer_fn(function()
+            vim.api.nvim_feedkeys("ad", "n", false)
+            vim.defer_fn(function()
+                require("blink.cmp").show()
+                poll(add_index, 10000, function(index)
+                    seen.labels = vim.tbl_map(function(item)
+                        return item.label
+                    end, require("blink.cmp.completion.list").items)
+                    if index then
+                        require("blink.cmp").accept({ index = index })
+                    end
+                    poll(function()
+                        return vim.api.nvim_get_current_line():find("add(", 1, true)
+                    end, 3000, function()
+                        seen.line = vim.api.nvim_get_current_line()
+                        seen.col = vim.api.nvim_win_get_cursor(0)[2]
+                        seen.mode = vim.api.nvim_get_mode().mode
+                        seen.snippet = vim.snippet.active()
+                        vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "n", false)
+                    end)
+                end)
+            end, 200)
+        end, 100)
+        -- a new line in main's body
+        vim.api.nvim_win_set_cursor(0, { 11, 0 })
+        vim.api.nvim_feedkeys("O", "nx!", false)
+        -- a snippet's Select mode ends the "x!" feed before the checks ran
+        check(seen.line, ("add() accepted in Insert mode (now %q, menu %s)"):format(vim.fn.mode(), vim.inspect(seen.labels)))
+        eq(vim.trim(seen.line), "add()", "the inserted text")
+        eq(seen.line:sub(seen.col, seen.col + 1), "()", "the cursor between the brackets")
+        eq(seen.mode, "i", "the mode after accepting")
+        eq(seen.snippet, false, "a snippet session")
+        vim.cmd("silent! undo")
     end)
 
     test("Lua: lua_ls, and formatters never start as servers", function()

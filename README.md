@@ -127,6 +127,9 @@ Leader is `Space`.
     — opens a line between the halves. Nothing inserts pairs on its own.
     Inside a call's parentheses the function's signature shows in a float
     above the line, the current argument in orange; it inserts nothing.
+    Accepting a function inserts name() with the cursor between the
+    brackets — never parameter names, never Select mode; there are no
+    snippet templates.
 
     Git, terminal, run
     ]c / [c      next / previous hunk  <leader>gp/gr/gb  preview, reset, blame
