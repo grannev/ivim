@@ -223,6 +223,15 @@ local function run()
         vim.cmd("silent! undo")
     end)
 
+    test("LaTeX: VimTeX's syntax, not treesitter, and no warning about it", function()
+        vim.cmd("messages clear | edit doc.tex")
+        eq(require("vim.treesitter.highlighter").active[vim.api.nvim_get_current_buf()], nil, "treesitter highlighter")
+        eq(vim.bo.syntax, "tex", "syntax")
+        -- VimTeX checks a second after the buffer opens
+        vim.wait(1500)
+        eq(vim.api.nvim_exec2("messages", { output = true }).output, "", ":messages")
+    end)
+
     test("Lua: lua_ls, and formatters never start as servers", function()
         vim.cmd("edit sample.lua")
         check(wait_for(function()

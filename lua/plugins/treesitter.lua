@@ -57,12 +57,19 @@ return {
             require("config.tools").when_installed("tree-sitter-cli", install_parsers)
         end
         -- main has no highlight/indent = enable: both are switched on per
-        -- buffer, for whichever filetype has a parser. LaTeX keeps
-        -- VimTeX's indentation, which knows environments and items.
-        local keep_indent = { tex = true, plaintex = true, bib = true }
+        -- buffer, for whichever filetype has a parser. LaTeX keeps VimTeX's
+        -- own syntax (its math text objects and conceal read it, and it
+        -- warns when treesitter takes over) and its indentation, which
+        -- knows environments and items; the latex parser still serves
+        -- LaTeX inside Markdown.
+        local vimtex_owns = { tex = true, plaintex = true }
+        local keep_indent = { bib = true }
         vim.api.nvim_create_autocmd("FileType", {
             group = vim.api.nvim_create_augroup("treesitter", { clear = true }),
             callback = function(args)
+                if vimtex_owns[args.match] then
+                    return
+                end
                 local lang = vim.treesitter.language.get_lang(args.match)
                 if not lang or not pcall(vim.treesitter.start, args.buf, lang) then
                     return
