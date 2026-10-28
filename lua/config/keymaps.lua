@@ -7,8 +7,9 @@ map("n", "<leader>q", "<cmd>q<CR>", { desc = "Quit window" })
 map("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
 -- IDE-like editing: delete the previous word (terminals send Ctrl-Backspace
--- as either <C-BS> or <C-h>) and the next one
+-- as either <C-BS> or <C-h>, Alt-Backspace as <M-BS>) and the next one
 map({ "i", "c" }, "<C-BS>", "<C-w>", { desc = "Delete previous word" })
+map({ "i", "c" }, "<M-BS>", "<C-w>", { desc = "Delete previous word" })
 map("i", "<C-h>", "<C-w>", { desc = "Delete previous word" })
 map("i", "<C-Del>", "<C-o>dw", { desc = "Delete next word" })
 map({ "i", "c" }, "<C-w>", "<Nop>", { desc = "Use Ctrl-Backspace to delete a word" })

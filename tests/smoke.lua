@@ -112,9 +112,18 @@ local function run()
             { "n", " lf" }, { "n", " uh" }, { "n", " ih" }, { "n", " ch" }, { "n", " Db" },
             { "n", " tt" }, { "n", "<A-Right>" }, { "n", "<C-\\>" }, { "n", "]c" }, { "n", "]t" },
             { "n", "<C-d>" }, { "n", "n" }, { "n", "<ScrollWheelDown>" }, { "n", " fs" },
+            { "i", "<C-BS>" }, { "i", "<M-BS>" }, { "c", "<M-BS>" },
         }
         for _, map in ipairs(expected) do
             check(not vim.tbl_isempty(vim.fn.maparg(map[2], map[1], false, true)), "no mapping for " .. map[2])
+        end
+    end)
+
+    test("Alt-Backspace deletes the previous word, like Ctrl-Backspace", function()
+        for _, key in ipairs({ "<C-BS>", "<M-BS>" }) do
+            vim.cmd("enew!")
+            vim.api.nvim_feedkeys(vim.keycode("ifoo bar" .. key .. "<Esc>"), "tx", false)
+            eq(vim.api.nvim_get_current_line(), "foo ", key .. " in Insert mode")
         end
     end)
 
